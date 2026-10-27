@@ -1,0 +1,1615 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Painel de Projetos Locus One</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:wght@400;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+
+
+<style>[hidden]{display:none!important}body{margin:0;font-size:14px}
+
+/* Layout: faixa de marca, seis indicadores, abas; tokens de base no :root, marca Locus no .pj */
+:root{--font-anthropic-sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--font-anthropic-serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+--cds-font-size-caption:12px;--cds-font-size-body:14px;--cds-font-size-heading:16px;--cds-font-size-title:28px;--cds-font-weight-medium:600;
+--cds-gap-xs:4px;--cds-gap-sm:8px;--cds-gap-md:16px;--cds-gap-lg:24px;--cds-pad-xs:4px;--cds-pad-sm:8px;--cds-pad-md:12px;--cds-pad-lg:20px;--cds-radius:10px;--cds-dur-slow:.3s;
+--color-bg:#F5F8FC;--color-panel:#FFFFFF;--color-fg:#14161B;--color-fg-muted:#5B6878;--color-border-line:#DCE4EE;--color-ok:#067647;--color-warn:#A86A00;--color-bad:#C4320A;
+--cds-chart-grid:#E7EDF4;--cds-chart-axis:#9AA6B2;--cds-chart-muted:#B8C2CC;--cds-chart-status-critical:#C4320A;--cds-chart-reference:#59606B;
+--cds-surface-popover:#FFFFFF;--cds-border:#DCE4EE;--cds-shadow-popover:0 6px 20px rgba(1,35,84,.14);--cds-text-secondary:#5B6878;--pj-overlay:rgba(1,35,84,.35)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--color-bg:#0A1320;--color-panel:#101C2B;--color-fg:#E8EEF5;--color-fg-muted:#93A3B5;--color-border-line:#22344A;--color-ok:#47CD89;--color-warn:#F5C542;--color-bad:#F97066;--cds-chart-grid:#1B2A3D;--cds-chart-axis:#5E7D99;--cds-chart-muted:#3D4F63;--cds-chart-status-critical:#F97066;--cds-chart-reference:#93A3B5;--cds-surface-popover:#16253A;--cds-border:#2A4363;--cds-text-secondary:#93A3B5;--pj-overlay:rgba(0,0,0,.55);color-scheme:dark}}
+:root[data-theme="dark"]{--color-bg:#0A1320;--color-panel:#101C2B;--color-fg:#E8EEF5;--color-fg-muted:#93A3B5;--color-border-line:#22344A;--color-ok:#47CD89;--color-warn:#F5C542;--color-bad:#F97066;--cds-chart-grid:#1B2A3D;--cds-chart-axis:#5E7D99;--cds-chart-muted:#3D4F63;--cds-chart-status-critical:#F97066;--cds-chart-reference:#93A3B5;--cds-surface-popover:#16253A;--cds-border:#2A4363;--cds-text-secondary:#93A3B5;--pj-overlay:rgba(0,0,0,.55);color-scheme:dark}
+body{background:var(--color-bg);color:var(--color-fg)}
+#dash-root{max-width:1320px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.pj-btn{font:inherit;font-size:var(--cds-font-size-caption);font-weight:600;border:1px solid var(--color-border-line);background:var(--color-panel);color:var(--lo-navy);border-radius:8px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.pj-btn:hover{border-color:var(--lo-blue)}
+.pj-btn:focus-visible,.pj-in:focus-visible,.pj-f input:focus-visible,.pj-f select:focus-visible{outline:2px solid var(--lo-blue);outline-offset:1px}
+.pj-primary{background:var(--lo-blue);border-color:var(--lo-blue);color:#FFFFFF}
+.pj-primary:hover{filter:brightness(1.08)}
+.pj-danger{color:var(--color-bad)}
+.pj-sm{padding:3px 10px}
+.pj-saved{color:var(--color-ok);font-weight:600;margin-left:6px}
+.pj-saved.bad{color:var(--color-bad)}
+.pj-ro{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0 0 var(--cds-gap-sm)}
+.pj-tw-edit{max-height:calc(100vh - 140px);overflow:auto}
+.pj-topscroll{overflow-x:auto;overflow-y:hidden;height:16px;margin-bottom:4px;position:sticky;top:0;z-index:4;background:var(--color-panel)}
+.pj-topscroll>div{height:1px}
+.pj-topscroll::-webkit-scrollbar,.pj-tw-edit::-webkit-scrollbar{height:12px;width:12px}
+.pj-topscroll::-webkit-scrollbar-track,.pj-tw-edit::-webkit-scrollbar-track{background:var(--lo-tint);border-radius:6px}
+.pj-topscroll::-webkit-scrollbar-thumb,.pj-tw-edit::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--lo-blue) 55%,var(--lo-tint));border-radius:6px;border:2px solid var(--lo-tint)}
+.pj-topscroll::-webkit-scrollbar-thumb:hover,.pj-tw-edit::-webkit-scrollbar-thumb:hover{background:var(--lo-blue)}
+.pj-topscroll,.pj-tw-edit{scrollbar-color:color-mix(in srgb,var(--lo-blue) 55%,var(--lo-tint)) var(--lo-tint)}
+.pj-edit th:nth-child(1),.pj-edit td:nth-child(1){position:sticky;left:0;z-index:2;background:var(--color-panel);width:44px;min-width:44px;max-width:44px}
+.pj-edit th:nth-child(2),.pj-edit td:nth-child(2){position:sticky;left:44px;z-index:2;background:var(--color-panel);box-shadow:6px 0 6px -6px rgba(1,35,84,.25)}
+.pj-edit thead th:nth-child(1),.pj-edit thead th:nth-child(2){z-index:3}
+.pj-edit td.pj-nome{min-width:12rem;max-width:16rem}
+.pj-edit td{padding:4px 6px}
+.pj-in{font:inherit;font-size:var(--cds-font-size-caption);color:var(--color-fg);background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 6px;width:100%;min-width:6.5rem;box-sizing:border-box}
+.pj-in:hover:not(:disabled){border-color:var(--color-border-line);background:var(--color-bg)}
+.pj-in:focus{border-color:var(--lo-blue);background:var(--color-bg)}
+.pj-in.falta{border-color:color-mix(in srgb,var(--color-bad) 45%,transparent);border-style:dashed}
+.pj-in.falta::placeholder{color:var(--color-bad);font-style:italic}
+.pj-in:disabled{opacity:1;cursor:default}
+select.pj-in{min-width:8rem}
+input[type="date"].pj-in{min-width:8.5rem}
+.pj-nome{min-width:14rem;max-width:22rem}
+.pj-cli{font-size:11px;color:var(--color-fg-muted)}
+.pj-muted{color:var(--color-fg-muted);white-space:nowrap}
+.pj-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.pj-modal{position:fixed;inset:0;background:var(--pj-overlay);z-index:20;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:calc(24px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.pj-modal[hidden]{display:none}
+.pj-sheet{background:var(--color-panel);color:var(--color-fg);border:1px solid var(--color-border-line);border-top:4px solid var(--lo-blue);border-radius:var(--cds-radius);width:min(100%,46rem);padding:var(--cds-pad-lg);box-shadow:var(--cds-shadow-popover);display:flex;flex-direction:column;gap:var(--cds-gap-md);font-family:var(--font-anthropic-sans)}
+.pj-sheet h2{margin:0;font-size:var(--cds-font-size-heading);color:var(--lo-navy)}
+.pj-x{font:inherit;font-size:22px;line-height:1;background:none;border:0;color:var(--color-fg-muted);cursor:pointer;padding:2px 6px}
+.pj-form{display:flex;flex-direction:column;gap:var(--cds-gap-md)}
+.pj-form fieldset{border:1px solid var(--color-border-line);border-radius:8px;margin:0;padding:var(--cds-pad-md);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));gap:var(--cds-gap-sm) var(--cds-gap-md)}
+.pj-form legend{font-size:var(--cds-font-size-caption);font-weight:600;color:var(--lo-blue);text-transform:uppercase;letter-spacing:.06em;padding:0 6px}
+.pj-f{display:flex;flex-direction:column;gap:4px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);min-width:0}
+.pj-f input,.pj-f select{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:6px;padding:7px 8px;min-width:0}
+.pj-wide{grid-column:1/-1}
+.pj-dist{display:flex;flex-wrap:wrap;align-items:center;gap:var(--cds-gap-sm)}
+.pj-hint{font-size:11px;color:var(--color-fg-muted)}
+.pj-warn{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-bad)}
+.pj-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--cds-gap-sm)}
+.pj-spacer{flex:1}
+.pj-msg{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.pj-confirm[hidden],.pj-banner[hidden],.pj-ro[hidden],.pj-warn[hidden]{display:none}
+.pj-confirm{font-size:var(--cds-font-size-caption);display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pj-banner{background:var(--lo-tint);border:1px solid var(--lo-line);color:var(--lo-navy);border-radius:var(--cds-radius);padding:var(--cds-pad-md) var(--cds-pad-lg);font-size:var(--cds-font-size-body)}
+.pj-faixas{display:flex;flex-direction:column;gap:10px}
+.pj-faixa{display:grid;grid-template-columns:7rem 1fr 2rem;gap:var(--cds-gap-sm);align-items:center;font-size:var(--cds-font-size-caption)}
+.pj-faixa-rot{font-weight:600;color:var(--lo-navy)}
+.pj-faixa-trk{min-width:0}
+.pj-faixa-bar{display:flex;height:22px;border-radius:6px;overflow:hidden;gap:2px;min-width:2rem}
+.pj-seg{display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:11px;font-weight:600;min-width:18px}
+.pj-logbox{display:flex!important;flex-direction:column;gap:var(--cds-gap-sm)}
+.pj-lognew{display:flex;flex-direction:column;gap:6px}
+.pj-lognew textarea{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:6px;padding:8px;resize:vertical;min-height:3.2rem}
+.pj-lognew textarea:focus-visible,.pj-logautor:focus-visible{outline:2px solid var(--lo-blue);outline-offset:1px}
+.pj-logbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.pj-logautor{font:inherit;font-size:var(--cds-font-size-caption);color:var(--color-fg);background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:6px;padding:5px 8px;width:10rem}
+.pj-log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:18rem;overflow:auto}
+.pj-log-item{border-left:3px solid var(--lo-blue);background:var(--lo-tint);border-radius:0 8px 8px 0;padding:8px 10px}
+.pj-log-item+.pj-log-item{border-left-color:var(--lo-line)}
+.pj-log-cab{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--cds-font-size-caption);color:var(--lo-navy)}
+.pj-log-ult{font-size:10.5px;color:var(--lo-blue);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-left:4px}
+.pj-log-txt{margin-top:4px;white-space:pre-wrap;font-size:var(--cds-font-size-body);color:var(--color-fg)}
+.pj-log-del{font:inherit;font-size:11px;background:none;border:0;color:var(--color-fg-muted);cursor:pointer;padding:2px 4px;text-decoration:underline}
+.pj-log-del.pj-danger{color:var(--color-bad)}
+.pj-log-conf{font-size:11px;color:var(--color-fg-muted)}
+.pj-log-conf[hidden],.pj-log-del[hidden]{display:none}
+.pj-log-vazio{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.pj-v-nome{font-size:22px!important;line-height:1.2}
+.pj-eq-nome{font-weight:600;color:var(--lo-navy);white-space:nowrap}
+.pj-eq-seta{display:inline-block;width:1.1em;color:var(--lo-blue)}
+.pj-eq-track{display:flex;gap:0;min-width:8rem}
+.pj-eq-seg{height:100%}
+.pj-eq-det td{background:var(--lo-tint)}
+.pj-eq-lista{list-style:none;margin:0;padding:4px 0 4px 1.4em;display:flex;flex-direction:column;gap:6px}
+.pj-eq-lista li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:var(--cds-font-size-caption)}
+.pj-eq-proj{font:inherit;background:none;border:0;padding:0;color:var(--lo-blue);cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:2px}
+.pj-eq-papel{font-size:10.5px;font-weight:600;color:var(--lo-navy);background:var(--color-panel);border:1px solid var(--lo-line);border-radius:999px;padding:1px 8px}
+.pj-tw-eq{max-height:none}
+.pj-strip button.pj-pill{font:inherit;background:none;border:1px dashed currentColor;border-radius:999px;padding:2px 10px;cursor:pointer}
+.pj-strip button.pj-pill:hover{background:var(--lo-tint)}
+.pj-strip .pj-sep-txt{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.pj-cr{display:inline-block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--pj-parado);border:1px solid currentColor;border-radius:999px;padding:0 6px;vertical-align:middle}
+.pj-sep-po{font-size:var(--cds-font-size-body)!important;color:var(--lo-navy)!important;border-top:2px solid var(--lo-line)}
+#t-ord tr.pj-semnum td{opacity:.85}
+.pj-tw-ord{max-height:none}
+#card-finalizados{border-top:3px solid var(--color-border-line)}
+#card-finalizados h2{color:var(--color-fg-muted)}
+.pj-apform{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,9.5rem),1fr));gap:var(--cds-gap-sm) var(--cds-gap-md)}
+.pj-apform textarea{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:6px;padding:7px 8px;resize:vertical}
+.pj-ap-resumo{font-size:var(--cds-font-size-caption);color:var(--lo-navy)}
+.pj-aptw{max-height:16rem}
+.pj-ap-com{min-width:14rem;white-space:pre-wrap}
+.pj-ap-papel{font-size:10.5px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.pj-ap-papel.fun{color:var(--lo-blue);border:1px solid currentColor}
+.pj-ap-papel.dev{color:var(--pj-f5);border:1px solid currentColor}
+.pj-modal-top{z-index:40}
+.pj-rth{font-size:10.5px!important;text-align:center;line-height:1.15;color:var(--pj-parado)!important}
+.pj-rtcell{text-align:center}
+.pj-rtbtn{font:inherit;font-weight:700;font-size:13px;min-width:2.1rem;height:1.9rem;border-radius:8px;border:1px dashed color-mix(in srgb,var(--pj-parado) 60%,var(--color-border-line));background:var(--color-panel);color:var(--pj-parado);cursor:pointer;padding:0 6px}
+.pj-rtbtn:hover{background:color-mix(in srgb,var(--pj-parado) 10%,transparent)}
+.pj-rtbtn.tem{border-style:solid}
+.pj-rtbtn.aberto{border-style:solid;background:var(--pj-parado);color:#FFFFFF}
+.pj-rtbtn:focus-visible{outline:2px solid var(--lo-blue);outline-offset:1px}
+.pj-fase-rt{color:var(--pj-parado);font-weight:600}
+.pj-rt-fechar{color:var(--pj-parado);border-color:color-mix(in srgb,var(--pj-parado) 50%,var(--color-border-line))}
+.pj-rt-aberto td{background:color-mix(in srgb,var(--pj-parado) 7%,transparent)}
+.pj-rt-og{font-size:10.5px;font-weight:600;border:1px solid currentColor;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.pj-rt-og.teste{color:var(--lo-blue)}
+.pj-rt-og.homolog{color:var(--pj-parado)}
+.pj-rtger{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--cds-font-size-caption);color:var(--lo-navy);background:color-mix(in srgb,var(--pj-parado) 6%,transparent);border:1px solid color-mix(in srgb,var(--pj-parado) 25%,transparent);border-radius:8px;padding:8px 10px;margin-top:8px}
+.pj-rtger>span{flex:1;min-width:12rem}
+.pj-ordcell{white-space:nowrap}
+.pj-tnum{font-variant-numeric:tabular-nums;color:var(--lo-navy);white-space:nowrap;min-width:3.5rem;text-align:right}
+.pj-ordin{font:inherit;font-family:var(--font-anthropic-serif);font-size:18px;color:var(--lo-blue);width:3.4rem;text-align:center;background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:6px;padding:3px 4px}
+.pj-ordin:focus-visible{outline:2px solid var(--lo-blue);outline-offset:1px}
+.pj-arrow{font:inherit;font-size:10px;line-height:1;background:var(--color-panel);color:var(--lo-navy);border:1px solid var(--color-border-line);border-radius:5px;padding:5px 6px;margin-left:4px;cursor:pointer;vertical-align:middle}
+.pj-arrow:hover:not(:disabled){border-color:var(--lo-blue);color:var(--lo-blue)}
+.pj-arrow:disabled{opacity:.35;cursor:default}
+#t-ord tr.pj-top td{background:color-mix(in srgb,var(--lo-blue) 6%,transparent)}
+#t-ord tr.pj-top td:first-child{box-shadow:inset 3px 0 0 var(--lo-blue)}
+.pj-falta-txt{color:var(--color-bad);font-style:italic}
+.pj-ordin.vazio,.pj-ordmini.vazio{border-style:dashed;border-color:color-mix(in srgb,var(--lo-blue) 50%,var(--color-border-line))}
+.pj-ordin::placeholder,.pj-ordmini::placeholder{color:color-mix(in srgb,var(--lo-blue) 60%,transparent);font-size:12px}
+.pj-ordmini{font:inherit;font-weight:600;font-size:13px;color:var(--lo-blue);width:3rem;text-align:center;background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:6px;padding:3px 2px;display:block}
+.pj-idtxt{display:block;font-size:10.5px;color:var(--color-fg-muted);text-align:center;margin-top:2px}
+.pj-sep{background:var(--lo-tint);color:var(--lo-navy);font-weight:600;font-size:var(--cds-font-size-caption);padding:8px!important;letter-spacing:.02em}
+.pj-edit th:nth-child(1),.pj-edit td:nth-child(1){width:60px!important;min-width:60px!important;max-width:60px!important}
+.pj-edit th:nth-child(2),.pj-edit td:nth-child(2){left:60px!important}
+@media (prefers-reduced-motion:no-preference){.pj-sheet{animation:pjIn .18s ease-out}@keyframes pjIn{from{transform:translateY(8px);opacity:.6}to{transform:none;opacity:1}}}
+
+
+
+/* Locus One: navy #012354, azul #0058FE, cinza #59606B; fases em rampa de azuis do slide */
+.pj {
+  --lo-navy: #012354; --lo-blue: #0058FE; --lo-ink: #16375A; --lo-tint: #EEF4FB; --lo-line: #C9DCEB;
+  --pj-f1: #A9C4E6; --pj-f2: #5E7D99; --pj-f3: #2F7DD1; --pj-f4: #0058FE; --pj-f5: #16375A; --pj-f6: #012354;
+  --pj-parado: #B54708; --pj-hl: #0058FE;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .pj {
+    --lo-navy: #DCEAF7; --lo-blue: #5C93FF; --lo-ink: #A9C4E6; --lo-tint: #14243A; --lo-line: #2A4363;
+    --pj-f1: #3D5A7A; --pj-f2: #5E7D99; --pj-f3: #2F7DD1; --pj-f4: #4D8BFF; --pj-f5: #9CC2FF; --pj-f6: #DCEAF7;
+    --pj-parado: #F79009; --pj-hl: #5C93FF;
+  }
+}
+:root[data-theme="dark"] .pj {
+  --lo-navy: #DCEAF7; --lo-blue: #5C93FF; --lo-ink: #A9C4E6; --lo-tint: #14243A; --lo-line: #2A4363;
+  --pj-f1: #3D5A7A; --pj-f2: #5E7D99; --pj-f3: #2F7DD1; --pj-f4: #4D8BFF; --pj-f5: #9CC2FF; --pj-f6: #DCEAF7;
+  --pj-parado: #F79009; --pj-hl: #5C93FF;
+}
+.pj { font-family: var(--font-anthropic-sans); color: var(--color-fg); display: flex; flex-direction: column; gap: var(--cds-gap-lg); }
+.pj-brand { display: flex; align-items: center; gap: var(--cds-gap-md); flex-wrap: wrap; background: var(--lo-tint); border: 1px solid var(--lo-line); border-left: 0; border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
+.pj-logo { background: #FFFFFF; border-radius: var(--cds-radius); padding: 8px 12px; display: flex; flex: none; }
+.pj-logo img { height: 30px; width: auto; display: block; }
+.pj-brand-txt { min-width: 0; flex: 1; }
+.pj-eyebrow { font-size: var(--cds-font-size-caption); letter-spacing: .08em; text-transform: uppercase; color: var(--lo-blue); font-weight: 600; }
+.pj-brand h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 2px 0 0; color: var(--lo-navy); text-wrap: balance; }
+.pj-take { margin: var(--cds-gap-xs) 0 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); }
+.pj-take b { color: var(--lo-navy); font-weight: 600; }
+.pj-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+.pj-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; position: relative; }
+.pj-kpi { display: flex; flex-direction: column; gap: var(--cds-gap-xs); border-top: 3px solid var(--lo-blue); }
+.pj-kpi .pj-lbl { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.pj-kpi .pj-v { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.1; color: var(--lo-navy); }
+.pj-kpi .pj-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+.pj-kpi .pj-meta { font-size: var(--cds-font-size-caption); color: var(--lo-ink); font-weight: 600; }
+.pj-strip { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm) var(--cds-gap-lg); font-size: var(--cds-font-size-body); align-items: center; }
+.pj-strip > span { display: inline-flex; align-items: center; gap: 6px; }
+.pj-strip b { font-variant-numeric: tabular-nums; }
+.pj-tabs { display: flex; gap: var(--cds-gap-xs); flex-wrap: wrap; border-bottom: 1px solid var(--color-border-line); }
+.pj-tab { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 0; border-bottom: 3px solid transparent; color: var(--color-fg-muted); padding: var(--cds-pad-sm) var(--cds-pad-md); cursor: pointer; margin-bottom: -1px; }
+.pj-tab[aria-selected="true"] { color: var(--lo-navy); border-bottom-color: var(--lo-blue); font-weight: 600; }
+.pj-tab:focus-visible { outline: 2px solid var(--lo-blue); outline-offset: 2px; }
+.pj-page { display: flex; flex-direction: column; gap: var(--cds-gap-md); }
+.pj-page[hidden] { display: none; }
+.pj-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+.pj-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; color: var(--lo-navy); }
+.pj-card .pj-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 var(--cds-gap-md); }
+.pj-row { display: flex; gap: var(--cds-gap-sm); align-items: center; flex-wrap: wrap; justify-content: space-between; }
+.pj-ctl { display: flex; gap: var(--cds-gap-sm); flex-wrap: wrap; align-items: center; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.pj-ctl select, .pj-ctl input[type="search"] { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); }
+.pj-bars { display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-height: 12rem; }
+.pj-bar { display: grid; grid-template-columns: minmax(7rem, 10.5rem) 1fr 2rem; gap: var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); }
+.pj-track { height: 14px; border-radius: 7px; background: var(--cds-chart-grid); overflow: hidden; }
+.pj-fill { height: 100%; border-radius: 7px; }
+.pj-bar .pj-n { text-align: right; font-variant-numeric: tabular-nums; }
+.pj-hrs { display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-height: 12rem; }
+.pj-hr { font-size: var(--cds-font-size-caption); display: flex; flex-direction: column; gap: 3px; }
+.pj-hrt { display: flex; justify-content: space-between; gap: var(--cds-gap-sm); }
+.pj-hrt span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pj-hrt span:last-child { font-variant-numeric: tabular-nums; color: var(--color-fg-muted); flex: none; }
+.pj-trk { position: relative; height: 10px; }
+.pj-est { position: absolute; top: 0; bottom: 0; left: 0; border: 1px solid var(--cds-chart-axis); border-radius: 5px; }
+.pj-real { position: absolute; top: 2px; bottom: 2px; left: 2px; border-radius: 4px; }
+.pj-tw { overflow: auto; max-height: 34rem; }
+.pj-t { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.pj-t th { text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--lo-ink); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 2px solid var(--lo-line); position: sticky; top: 0; background: var(--color-panel); white-space: nowrap; }
+.pj-t td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: middle; }
+.pj-t .num { text-align: right; }
+.pj-t th button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.pj-t th[aria-sort="ascending"] button::after { content: " ↑"; }
+.pj-t th[aria-sort="descending"] button::after { content: " ↓"; }
+.pj-t .vazio { color: var(--color-bad); font-style: italic; }
+.pj-pill { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.pj-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+.pj-pill.ok { color: var(--color-ok); } .pj-pill.warn { color: var(--color-warn); } .pj-pill.bad { color: var(--color-bad); }
+.pj-pill.par { color: var(--pj-parado); } .pj-pill.mut { color: var(--color-fg-muted); } .pj-pill.sem { color: var(--lo-ink); }
+.pj-pill.sem::before { background: transparent; border: 2px solid currentColor; width: 6px; height: 6px; }
+.pj-prio { font-weight: 600; } .pj-prio.p1 { color: var(--color-bad); } .pj-prio.p2 { color: var(--pj-parado); } .pj-prio.p3 { color: var(--color-fg); } .pj-prio.p4 { color: var(--color-fg-muted); font-weight: 400; }
+.pj-rank { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); color: var(--lo-blue); }
+.pj-health { display: flex; align-items: center; gap: var(--cds-gap-sm); min-width: 8rem; }
+.pj-health .pj-track { flex: 1; height: 8px; }
+.pj-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: var(--cds-gap-sm); }
+.pj-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.pj-legend i { width: 12px; height: 8px; border-radius: 3px; display: inline-block; }
+.pj-legend i.dot { width: 9px; height: 9px; border-radius: 50%; }
+.pj-est-wrap { position: relative; min-height: 20rem; }
+.pj-est-wrap svg text { font-family: var(--font-anthropic-sans); }
+.pj-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); max-width: 16rem; z-index: 2; }
+.pj-tip .k { color: var(--cds-text-secondary); }
+.pj-def { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+.pj-regua { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: var(--cds-font-size-caption); border: 1px solid currentColor; white-space: nowrap; }
+.pj-over { color: var(--color-bad); font-weight: 600; }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+.pj-fail { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 8rem; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.pj-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+
+.pj-click{cursor:pointer}
+.pj-click:hover td{background:color-mix(in srgb,var(--lo-blue) 5%,transparent)}
+.pj-vazio{color:var(--color-fg-muted);padding:14px 8px!important}
+.pj-empty{display:flex;align-items:center;justify-content:center;min-height:6rem;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);text-align:center}
+.pj-nowrap{white-space:nowrap}
+.pj-passo{max-width:16rem;color:var(--color-fg-muted)}
+.pj-fase{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:var(--cds-font-size-caption)}
+.pj-fase::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--fc);flex:none}
+.pj-real-tag{font-size:10.5px;color:var(--color-ok);padding:1px 6px;white-space:nowrap}
+.pj-real-tag.bad{color:var(--color-bad)}
+.pj-acoes{white-space:nowrap}
+.pj-acoes .pj-btn+.pj-btn{margin-left:6px}
+.pj-primary-soft{color:var(--lo-blue);border-color:color-mix(in srgb,var(--lo-blue) 40%,var(--color-border-line))}
+.pj-sheet-wide{width:min(100%,56rem)}
+.pj-mstatus{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:var(--cds-font-size-caption);color:var(--color-fg);padding:8px 12px;background:var(--lo-tint);border-radius:8px}
+.pj-mstatus:empty{display:none}
+.pj-cin{font:inherit;font-size:var(--cds-font-size-caption);color:var(--color-fg);background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:6px;padding:5px 6px;min-width:8.5rem}
+.pj-ctab td{padding:5px 8px}
+.pj-desvio{white-space:nowrap;font-weight:600}
+.pj-f textarea{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:6px;padding:7px 8px;resize:vertical;min-width:0}
+.pj-tip-t{font-weight:600;margin-bottom:2px}
+.pj-crono{display:block!important}
+.pj-crono .pj-dist{margin-top:var(--cds-gap-sm)}
+</style></head><body><div id="dash-root">
+<div class="pj">
+  <div class="pj-banner" id="pj-banner" hidden></div>
+  <header class="pj-brand" id="topo">
+    <div class="pj-logo"><img alt="Locus One" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIxMDAgMTEyIDE3MjAgMzc1IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBpZD0iTGF5ZXJfMiIgb3ZlcmZsb3c9ImhpZGRlbiI+PGRlZnM+PC9kZWZzPjxnIGlkPSJMYXllcl8xLTIiPjxnPjxnPjxnPjxnPjxwYXRoIGQ9Ik0yNTAuNzggMzUyLjE0QzI0Ny4yIDM1OC41OSAyNDMuMyAzNjEuNzkgMjM4LjA0IDM2NS41OEwxMDguOSA0NjAuMzcgMjAzLjYyIDE1Ny4wNUMyMTEuNjYgMTM2LjQ5IDIyOS41MiAxMjMuMiAyNTEuNDQgMTIyLjQ4TDMyMS4yOCAxMjIuNjVDMzIyLjk1IDEyNS4zNSAzMjIuMjIgMTI4LjA5IDMyMS4yMyAxMzEuMkwyNTAuNzcgMzUyLjE1WiIgZmlsbD0iIzAxMjM1NCIvPjxwYXRoIGQ9Ik0yODcuMjYgNDQ0LjcyQzI4MS4yIDQ2NC4yOSAyNjQuMDUgNDc2LjU2IDI0NC4xMSA0NzcuNTJMMTE1LjMyIDQ3Ni45OCAyNDAuNTQgMzg0LjI3QzI0NC43IDM4MS4xOSAyNDkuNDcgMzgwLjIyIDI1NC4zNCAzNzkuODZMMzAxLjMyIDM3OS44MkMzMDQuNTggMzc5LjgyIDMwNi40MiAzODIuODkgMzA1LjQ5IDM4NS44OUwyODcuMjcgNDQ0LjcyWiIgZmlsbD0iIzAxMjM1NCIvPjwvZz48Zz48cGF0aCBkPSJNNDMwLjkzIDE5Ni4zOCAzNTUuMyAyNTMuMTMgMzg2Ljk0IDE1Mi40M0MzOTMuOTggMTM1LjA0IDQxMC4wOCAxMjQuNzcgNDI4Ljg2IDEyMi42TDUzMi41OSAxMjIuODggNDMwLjkzIDE5Ni4zOFoiIGZpbGw9IiM1OTYwNkIiLz48cGF0aCBkPSJNMzMwLjg0IDQ3My4wMiAzOTMuODQgMjc0Ljg0QzM3MS44MSAyODMuNjEgMzUxLjcxIDI5My4yNyAzMjguMjggMjk5LjUzIDM1OS4wMyAyNzIuNjQgMzkwLjYgMjQ5LjMzIDQyMy4wNSAyMjUuMjdMNDk5LjUzIDE2OC41NSA1MzIuMjUgMTQ1Ljc1IDQ0Mi43NyA0MzkuNjlDNDM2LjI2IDQ2MS4wOCA0MTYuODEgNDc2Ljg4IDM5NS4yNCA0NzcuMDRMMzM0Ljg5IDQ3Ny41QzMzMy4xOCA0NzcuNTEgMzI5Ljg4IDQ3Ni4wNyAzMzAuODUgNDczLjAxWiIgZmlsbD0iIzAwNThGRSIvPjwvZz48L2c+PGc+PGc+PHBhdGggZD0iTTExNDkuNTEgMjU3LjI0IDExNDkuNzMgMzc2LjUzIDExMTYuNDUgMzc2LjYyQzExMTUuOTUgMzcyLjAzIDExMTYuMjcgMzY4LjIxIDExMTQuMDcgMzYzLjI0IDEwOTYuOTUgMzc2LjIyIDEwNzcuMDIgMzgxLjY2IDEwNTYuMiAzNzguMDIgMTAzOC4xOSAzNzQuODcgMTAyNi4xMyAzNjAuNTkgMTAyNS4xOSAzNDIuMDRMMTAyNS4xIDI1Ny4yNSAxMDYxLjEyIDI1Ny4yMiAxMDYxLjEyIDMzMS45N0MxMDYwLjYyIDM0My45NCAxMDcwLjEzIDM1Mi4yOSAxMDgyLjEgMzUxLjQ5IDEwOTMuODQgMzUwLjcgMTEwNC4zIDM0NS40OSAxMTEzLjQ5IDMzNy45N0wxMTEzLjQ5IDI1Ny4xMkMxMTEzLjQ5IDI1Ny4xMiAxMTQ5LjUxIDI1Ny4yNSAxMTQ5LjUxIDI1Ny4yNVoiIGZpbGw9IiMxRjFFMUUiLz48cGF0aCBkPSJNNzU5LjEyIDM0Ni42NCA3NTkuMjIgMzc2LjM3IDYzNi4wMSAzNzYuNjMgNjM2LjIgMjAxLjU1IDY3Mi41OCAyMDEuMzYgNjcyLjU2IDM0Ni4zNiA3NTkuMTIgMzQ2LjY0WiIgZmlsbD0iIzFGMUUxRSIvPjxwYXRoIGQ9Ik0xMTcwLjg1IDM3Mi42NyAxMTcwLjYgMzQ1LjQgMTIwOS40OSAzNTIuMjlDMTIyMS4wMSAzNTQuMzMgMTIzOS4wMyAzNTIuMjcgMTI0MC40NyAzNDQuMjggMTI0Mi4zIDMzNC4xNSAxMjMxLjY5IDMzMi41IDEyMjEuMTMgMzMwLjE0TDExODkuMTUgMzIyLjk5QzExNzUuNDggMzE5LjkzIDExNjkuMSAzMDcuNCAxMTY4LjQ3IDI5My45MiAxMTY3LjY0IDI3NS45NSAxMTc3LjUxIDI2Mi40IDExOTUuMjIgMjU3LjMgMTIxOC4wOCAyNTAuNzIgMTI0Mi41OSAyNTIuNDMgMTI2Ni4xMyAyNTkuM0wxMjY2LjIxIDI4Ni44NkMxMjQ0LjU2IDI4MC4yOCAxMjAxLjExIDI3NS4zOSAxMjAyLjc3IDI5MS42MiAxMjAzLjE4IDI5NS41OSAxMjA2Ljc2IDI5OC42MSAxMjExLjM5IDI5OS41OEwxMjQ5LjY0IDMwNy41NUMxMjY1LjU0IDMxMC44NiAxMjczLjM0IDMyMy4zNCAxMjczLjQ0IDMzOS4zMyAxMjczLjU2IDM1Ny45OSAxMjYyLjk2IDM3My4yOSAxMjQzLjY3IDM3Ni42NiAxMjE5LjgzIDM4MS4wNiAxMTk1LjIzIDM3OS41NyAxMTcwLjgzIDM3Mi42NloiIGZpbGw9IiMxRjFFMUUiLz48cGF0aCBkPSJNOTYxLjk0IDM1MC40NEM5NzguNDQgMzUyLjE4IDk5My40MiAzNTAuMTcgMTAwOS4zNCAzNDQuODZMMTAwOS4zNyAzNzIuMDJDOTg4LjM2IDM3OS4xOCA5NjYuMzYgMzgxLjE5IDk0NC43NyAzNzYuNzMgOTA3LjA0IDM2OC45NCA4OTcuOCAzMjguNjYgOTA2LjQxIDI5Mi40NiA5MTYuMzYgMjUwLjY5IDk3MC4zMyAyNDYuMTggMTAwOS4zMyAyNTkuODJMMTAwOS4yOSAyODcuMDVDOTg1LjA5IDI3OS4xNiA5NDkuNDMgMjc2LjU4IDk0MS43NiAyOTcuMjUgOTM0LjIyIDMxNy41OCA5MzcuOTkgMzQ3LjE3IDk2MS45NCAzNTAuNDRaIiBmaWxsPSIjMUYxRTFFIi8+PHBhdGggZD0iTTg1NS45OSAyNTYuMzJDODIwLjk2IDI0Ni45NCA3NzYuNTQgMjU0LjQ5IDc2Ni45MyAyOTIuMTggNzU3Ljc1IDMyOC4xOCA3NjcuMDEgMzY4Ljg2IDgwNS42MSAzNzYuNzIgODM4Ljk0IDM4My41IDg3OS4wMiAzNzguMTIgODg5Ljc3IDM0My4zOCA5MDAuMjMgMzA5LjU2IDg5Mi41IDI2Ni4xMyA4NTUuOTggMjU2LjMzWk04NTcuMzggMzMyLjgxQzg1My4yNyAzNDkuNzUgODMzLjQxIDM1NC4xNSA4MTcuMDQgMzQ5LjM1IDc5OC4wOSAzNDMuODEgNzk2LjA0IDMxNS45OSA4MDIuMTUgMjk2Ljc4IDgwNi44NSAyODIgODI1Ljg2IDI3OC40IDg0MS40NyAyODIuMzIgODYwLjEyIDI4NyA4NjEuOTcgMzEzLjk3IDg1Ny4zOSAzMzIuODFaIiBmaWxsPSIjMUYxRTFFIi8+PC9nPjxnPjxwYXRoIGQ9Ik0xNjExLjM5IDI4Mi45M0MxNTk3LjIxIDI4Mi40OCAxNTg0LjkxIDI4Ny43NCAxNTc0LjQ1IDI5NS4yN0wxNTc0LjYzIDM3Ni41NyAxNTM4LjU4IDM3Ni44IDE1MzguNzkgMjU3LjIyIDE1NzMuMTIgMjU2Ljk0IDE1NzQuMzggMjY5LjY1QzE1OTAuNjEgMjU5LjUgMTYwNy4yIDI1Mi42MiAxNjI2LjA3IDI1My42MSAxNjQ3LjI4IDI1NC43MyAxNjYzLjc4IDI3MC45MyAxNjYyLjc5IDI5Mi40MkwxNjYzLjM5IDM3Ni4zOCAxNjI3LjYgMzc2LjY0IDE2MjcuMjEgMjk4LjM3QzE2MjcuMTcgMjg5LjQ5IDE2MjEuMDQgMjgzLjIzIDE2MTEuNCAyODIuOTNaIiBmaWxsPSIjMDE1QUZCIi8+PHBhdGggZD0iTTE1MTUuNzEgMjQ4LjE2QzE1MDguODQgMjI0LjAzIDE0OTAuMTMgMjA3LjEgMTQ2NS44OSAyMDEuNTUgMTQ0Mi44NSAxOTYuMjggMTQxOS4yNCAxOTYuNjUgMTM5Ni41NCAyMDIuNjkgMTM3Mi4yMyAyMDkuMTUgMTM1NC4zOSAyMjYuODIgMTM0OC4zNiAyNTEuMTggMTM0MS41MiAyNzguODMgMTM0MS40MiAzMDcuMzUgMTM1MC40NiAzMzQuNjMgMTM1Ny45NSAzNTcuMTkgMTM3Ny44NyAzNzIuNzcgMTQwMS4yMyAzNzcuMjIgMTQyMi41NCAzODEuMyAxNDQzLjg4IDM4MS4yOCAxNDY1Ljk0IDM3Ni42MiAxNDkxLjI1IDM3MS4yOCAxNTA5Ljc0IDM1Mi4zMiAxNTE1Ljk0IDMyOCAxNTIyLjY3IDMwMS42OSAxNTIzLjEzIDI3NC4yNSAxNTE1LjcgMjQ4LjE4Wk0xNDUxLjk0IDM0Ny40OUMxNDM3LjQgMzUwLjYgMTQyMi4xNCAzNTAuNjYgMTQwNy45NyAzNDUuNzIgMTM3OS4xNiAzMzUuNjQgMTM3OC40OSAyODkuMSAxMzg1Ljc3IDI1OS42OCAxMzg5LjM2IDI0NS4yMiAxMzk5LjE4IDIzNC42NSAxNDEzLjYgMjMxLjU3IDE0NDEuNyAyMjUuNTUgMTQ3Mi43OSAyMzAuMzkgMTQ3OS45NyAyNTkuMyAxNDg3Ljc2IDI5MC43MiAxNDg1LjgxIDM0MC4yMiAxNDUxLjkzIDM0Ny40OFoiIGZpbGw9IiMwMTVBRkIiLz48cGF0aCBkPSJNMTc2Ny40NiAyNTUuOUMxNzMyLjg4IDI0Ni45MSAxNjkxLjQ4IDI1Ni4yMiAxNjgxLjg4IDI5My4xNCAxNjc3LjY5IDMwOS4yNiAxNjc3LjkgMzI2LjIyIDE2ODIuNyAzNDIuMjggMTY4OC4yNiAzNjAuODkgMTcwNC4xOCAzNzMuOTggMTcyMy4yOCAzNzcuNDMgMTc0Ni45MSAzODEuNyAxNzcwLjg5IDM4MC4yNCAxNzkzLjYgMzczLjE3TDE3OTMuNjggMzQ2LjQ2QzE3NjQuMjkgMzU1LjkyIDE3MTYuMDggMzU4Ljc1IDE3MTUuMTQgMzI4LjI0TDE4MDAuMjYgMzI4LjE5QzE4MDMuOCAyOTcuMjQgMTc5OC44NSAyNjQuMDUgMTc2Ny40NiAyNTUuOVpNMTcxNC43OSAzMDcuMDZDMTcxNC42MyAyOTkuNTMgMTcxNi4yIDI5MS4zNyAxNzIxLjg3IDI4Ni40NSAxNzMxLjg0IDI3Ny43NyAxNzYwLjI2IDI3Ny4yNiAxNzY1Ljg2IDI5MS42MiAxNzY3Ljg1IDI5Ni43MiAxNzY4LjEgMzAxLjY1IDE3NjguMzQgMzA3LjEzTDE3MTQuOCAzMDcuMDZaIiBmaWxsPSIjMDE1QUZCIi8+PC9nPjwvZz48Zz48Zz48cGF0aCBkPSJNNjQ5LjYgNDQ4Ljk2IDY0MS4xNSA0NDguOTYgNjQxLjE1IDQ0NS4zMSA2NjIuMTMgNDQ1LjMxIDY2Mi4xMyA0NDguOTYgNjUzLjY4IDQ0OC45NiA2NTMuNjggNDcyLjggNjQ5LjU5IDQ3Mi44IDY0OS41OSA0NDguOTZaIi8+PHBhdGggZD0iTTY3Mi40MiA0NDUuMzEgNjkwLjI5IDQ0NS4zMSA2OTAuMjkgNDQ4Ljg4IDY3Ni41IDQ0OC44OCA2NzYuNSA0NTcuMTMgNjg5LjExIDQ1Ny4xMyA2ODkuMTEgNDYwLjM5IDY3Ni41IDQ2MC4zOSA2NzYuNSA0NjkuMjMgNjkwLjY4IDQ2OS4yMyA2OTAuNjggNDcyLjggNjcyLjQxIDQ3Mi44IDY3Mi40MSA0NDUuM1oiLz48cGF0aCBkPSJNNzAwLjU5IDQ1OS4wNkM3MDAuNTkgNDQ5Ljk1IDcwNS42NiA0NDQuOTYgNzEzLjIgNDQ0Ljk2IDcxOC45IDQ0NC45NiA3MjMuMzMgNDQ3LjgzIDcyNC4xMiA0NTMuODRMNzIwLjExIDQ1My44NEM3MTkuMjUgNDUwLjI3IDcxNi42MSA0NDguNSA3MTMuMDggNDQ4LjUgNzA3LjgyIDQ0OC41IDcwNC43MSA0NTIuNDcgNzA0LjcxIDQ1OS4wNyA3MDQuNzEgNDY1LjY3IDcwNy43NyA0NjkuNjggNzEzLjA4IDQ2OS42OCA3MTYuNjIgNDY5LjY4IDcxOS4yNSA0NjcuOTEgNzIwLjExIDQ2NC4zTDcyNC4xMiA0NjQuM0M3MjMuMzMgNDcwLjM1IDcxOC45IDQ3My4yMiA3MTMuMTYgNDczLjIyIDcwNS42NiA0NzMuMjIgNzAwLjU5IDQ2OC4yMyA3MDAuNTkgNDU5LjA4WiIvPjxwYXRoIGQ9Ik03MzQuNTcgNDQ1LjMxIDczOC45NyA0NDUuMzEgNzUyLjQgNDY2LjQgNzUyLjUyIDQ2Ni40IDc1Mi41MiA0NDUuMzEgNzU2LjYxIDQ0NS4zMSA3NTYuNjEgNDcyLjgxIDc1Mi4wNSA0NzIuODEgNzM4LjczIDQ1MS45MSA3MzguNjUgNDUxLjkxIDczOC42NSA0NzIuODEgNzM0LjU2IDQ3Mi44MSA3MzQuNTYgNDQ1LjMxWiIvPjxwYXRoIGQ9Ik03NjcuNDkgNDU5LjA2Qzc2Ny40OSA0NTAuMTggNzcyLjc1IDQ0NC45NiA3ODAuMTggNDQ0Ljk2IDc4Ny42MSA0NDQuOTYgNzkyLjgzIDQ1MC4xOCA3OTIuODMgNDU5LjA2IDc5Mi44MyA0NjcuOTQgNzg3LjU3IDQ3My4yIDc4MC4xOCA0NzMuMiA3NzIuNzkgNDczLjIgNzY3LjQ5IDQ2Ny45NCA3NjcuNDkgNDU5LjA2Wk03ODguNjYgNDU5LjA2Qzc4OC42NiA0NTIuMjIgNzg1LjIgNDQ4LjQ5IDc4MC4xOCA0NDguNDkgNzc1LjE2IDQ0OC40OSA3NzEuNjYgNDUyLjIyIDc3MS42NiA0NTkuMDYgNzcxLjY2IDQ2NS45IDc3NS4xMiA0NjkuNjcgNzgwLjE4IDQ2OS42NyA3ODUuMjQgNDY5LjY3IDc4OC42NiA0NjUuOSA3ODguNjYgNDU5LjA2WiIvPjxwYXRoIGQ9Ik04MDMuNzEgNDQ1LjMxIDgwNy44IDQ0NS4zMSA4MDcuOCA0NjkuMjMgODIxLjQzIDQ2OS4yMyA4MjEuNDMgNDcyLjggODAzLjcxIDQ3Mi44IDgwMy43MSA0NDUuM1oiLz48cGF0aCBkPSJNODMwLjUgNDU5LjA2QzgzMC41IDQ1MC4xOCA4MzUuNzYgNDQ0Ljk2IDg0My4xOSA0NDQuOTYgODUwLjYyIDQ0NC45NiA4NTUuODQgNDUwLjE4IDg1NS44NCA0NTkuMDYgODU1Ljg0IDQ2Ny45NCA4NTAuNTggNDczLjIgODQzLjE5IDQ3My4yIDgzNS44IDQ3My4yIDgzMC41IDQ2Ny45NCA4MzAuNSA0NTkuMDZaTTg1MS42NyA0NTkuMDZDODUxLjY3IDQ1Mi4yMiA4NDguMjEgNDQ4LjQ5IDg0My4xOSA0NDguNDkgODM4LjE3IDQ0OC40OSA4MzQuNjcgNDUyLjIyIDgzNC42NyA0NTkuMDYgODM0LjY3IDQ2NS45IDgzOC4xMyA0NjkuNjcgODQzLjE5IDQ2OS42NyA4NDguMjUgNDY5LjY3IDg1MS42NyA0NjUuOSA4NTEuNjcgNDU5LjA2WiIvPjxwYXRoIGQ9Ik04NjYuMTMgNDU5LjE0Qzg2Ni4xMyA0NDkuOTEgODcxLjIgNDQ0Ljk2IDg3OC42NiA0NDQuOTYgODg0LjEyIDQ0NC45NiA4ODguNDggNDQ3LjU5IDg4OS41IDQ1Mi44OUw4ODUuNDUgNDUyLjg5Qzg4NC40NyA0NDkuODMgODgxLjg4IDQ0OC40OSA4NzguNjUgNDQ4LjQ5IDg3My4xNSA0NDguNDkgODcwLjIgNDUyLjQyIDg3MC4yIDQ1OS4wMiA4NzAuMiA0NjUuNjIgODczLjIyIDQ2OS42NyA4NzguNzIgNDY5LjY3IDg4Mi45MiA0NjkuNjcgODg2LjI2IDQ2Ny4zMSA4ODYuMjIgNDYxLjdMODc5Ljg2IDQ2MS43IDg3OS44NiA0NTguNCA4OTAuMjcgNDU4LjQgODkwLjI3IDQ2MC42Qzg5MC4yNyA0NjguODkgODg1Ljk1IDQ3My4yMSA4NzguNjggNDczLjIxIDg3MC45IDQ3My4yMSA4NjYuMTEgNDY4LjE4IDg2Ni4xMSA0NTkuMTVaIi8+PHBhdGggZD0iTTkwMS4zNiA0NDUuMzEgOTA1LjQ1IDQ0NS4zMSA5MDUuNDUgNDcyLjgxIDkwMS4zNiA0NzIuODEgOTAxLjM2IDQ0NS4zMVoiLz48cGF0aCBkPSJNOTI1Ljg0IDQ0NS4zMSA5MzAuOTUgNDQ1LjMxIDk0MS4yOCA0NzIuODEgOTM3IDQ3Mi44MSA5MzQuNjggNDY2LjQ5IDkyMi4xMSA0NjYuNDkgOTE5Ljc5IDQ3Mi44MSA5MTUuNTEgNDcyLjgxIDkyNS44NCA0NDUuMzFaTTkzMy41NCA0NjMuMzggOTI4LjUxIDQ0OS41OSA5MjguMjcgNDQ5LjU5IDkyMy4yNCA0NjMuMzggOTMzLjUzIDQ2My4zOFoiLz48L2c+PGc+PHBhdGggZD0iTTk5Mi41NCA0NzAuODRDOTkwLjUgNDcyLjM3IDk4Ny45IDQ3My4yIDk4NSA0NzMuMiA5NzcuNTggNDczLjIgOTcyLjMxIDQ2Ny45NCA5NzIuMzEgNDU5LjA2IDk3Mi4zMSA0NTAuMTggOTc3LjU3IDQ0NC45NiA5ODUgNDQ0Ljk2IDk5Mi40MyA0NDQuOTYgOTk3LjY1IDQ1MC4xOCA5OTcuNjUgNDU5LjA2IDk5Ny42NSA0NjIuOTEgOTk2LjY3IDQ2Ni4wNSA5OTQuOTQgNDY4LjQxTDk5Ny42MSA0NzEuMTIgOTk1LjEzIDQ3My40OCA5OTIuNTQgNDcwLjg1Wk05ODkuODYgNDY4LjEzIDk4NS4xNSA0NjMuMzggOTg3LjYyIDQ2MS4wMiA5OTIuMDYgNDY1LjVDOTkyLjk2IDQ2My44NSA5OTMuNDcgNDYxLjY5IDk5My40NyA0NTkuMDYgOTkzLjQ3IDQ1Mi4yMiA5OTAuMDEgNDQ4LjQ5IDk4NC45OSA0NDguNDkgOTc5Ljk3IDQ0OC40OSA5NzYuNDcgNDUyLjIyIDk3Ni40NyA0NTkuMDYgOTc2LjQ3IDQ2NS45IDk3OS45MyA0NjkuNjcgOTg0Ljk5IDQ2OS42NyA5ODYuODggNDY5LjY3IDk4OC41MyA0NjkuMTYgOTg5Ljg2IDQ2OC4xNFoiLz48cGF0aCBkPSJNMTAxMC4wOSA0NjIuNCAxMDEwLjA5IDQ0NS4zMSAxMDE0LjE4IDQ0NS4zMSAxMDE0LjE4IDQ2Mi4xMkMxMDE0LjE4IDQ2Ni45OSAxMDE2LjY5IDQ2OS42MiAxMDIwLjkgNDY5LjYyIDEwMjUuMTEgNDY5LjYyIDEwMjcuNjIgNDY2Ljk5IDEwMjcuNjIgNDYyLjEyTDEwMjcuNjIgNDQ1LjMxIDEwMzEuNzQgNDQ1LjMxIDEwMzEuNzQgNDYyLjRDMTAzMS43NCA0NjkuNDcgMTAyNy40MiA0NzMuMiAxMDIwLjkgNDczLjIgMTAxNC4zOCA0NzMuMiAxMDEwLjEgNDY5LjQ3IDEwMTAuMSA0NjIuNFoiLz48cGF0aCBkPSJNMTA0NC43NCA0NDUuMzEgMTA2Mi42MSA0NDUuMzEgMTA2Mi42MSA0NDguODggMTA0OC44MiA0NDguODggMTA0OC44MiA0NTcuMTMgMTA2MS40MyA0NTcuMTMgMTA2MS40MyA0NjAuMzkgMTA0OC44MiA0NjAuMzkgMTA0OC44MiA0NjkuMjMgMTA2MyA0NjkuMjMgMTA2MyA0NzIuOCAxMDQ0LjczIDQ3Mi44IDEwNDQuNzMgNDQ1LjNaIi8+PC9nPjxnPjxwYXRoIGQ9Ik0xMDk0LjAyIDQ0NS4zMSAxMTExLjg5IDQ0NS4zMSAxMTExLjg5IDQ0OC44OCAxMDk4LjEgNDQ4Ljg4IDEwOTguMSA0NTcuMTMgMTExMC43MSA0NTcuMTMgMTExMC43MSA0NjAuMzkgMTA5OC4xIDQ2MC4zOSAxMDk4LjEgNDY5LjIzIDExMTIuMjggNDY5LjIzIDExMTIuMjggNDcyLjggMTA5NC4wMSA0NzIuOCAxMDk0LjAxIDQ0NS4zWiIgZmlsbD0iIzAyNUJGRiIvPjxwYXRoIGQ9Ik0xMTIxLjk5IDQ0NS4zMSAxMTI2LjI3IDQ0NS4zMSAxMTM0Ljc1IDQ2OC41MyAxMTM0Ljk5IDQ2OC41MyAxMTQzLjQ4IDQ0NS4zMSAxMTQ3Ljc2IDQ0NS4zMSAxMTM3LjQzIDQ3Mi44MSAxMTMyLjMyIDQ3Mi44MSAxMTIxLjk5IDQ0NS4zMVoiIGZpbGw9IiMwMjVCRkYiLz48cGF0aCBkPSJNMTE1Ni40OCA0NTkuMDZDMTE1Ni40OCA0NTAuMTggMTE2MS43NCA0NDQuOTYgMTE2OS4xNyA0NDQuOTYgMTE3Ni42IDQ0NC45NiAxMTgxLjgyIDQ1MC4xOCAxMTgxLjgyIDQ1OS4wNiAxMTgxLjgyIDQ2Ny45NCAxMTc2LjU2IDQ3My4yIDExNjkuMTcgNDczLjIgMTE2MS43OCA0NzMuMiAxMTU2LjQ4IDQ2Ny45NCAxMTU2LjQ4IDQ1OS4wNlpNMTE3Ny42NiA0NTkuMDZDMTE3Ny42NiA0NTIuMjIgMTE3NC4yIDQ0OC40OSAxMTY5LjE4IDQ0OC40OSAxMTY0LjE2IDQ0OC40OSAxMTYwLjY2IDQ1Mi4yMiAxMTYwLjY2IDQ1OS4wNiAxMTYwLjY2IDQ2NS45IDExNjQuMTIgNDY5LjY3IDExNjkuMTggNDY5LjY3IDExNzQuMjQgNDY5LjY3IDExNzcuNjYgNDY1LjkgMTE3Ny42NiA0NTkuMDZaIiBmaWxsPSIjMDI1QkZGIi8+PHBhdGggZD0iTTExOTMuMDkgNDQ1LjMxIDExOTcuMTggNDQ1LjMxIDExOTcuMTggNDY5LjIzIDEyMTAuODEgNDY5LjIzIDEyMTAuODEgNDcyLjggMTE5My4wOSA0NzIuOCAxMTkzLjA5IDQ0NS4zWiIgZmlsbD0iIzAyNUJGRiIvPjxwYXRoIGQ9Ik0xMjIxLjI2IDQ2Mi40IDEyMjEuMjYgNDQ1LjMxIDEyMjUuMzUgNDQ1LjMxIDEyMjUuMzUgNDYyLjEyQzEyMjUuMzUgNDY2Ljk5IDEyMjcuODYgNDY5LjYyIDEyMzIuMDcgNDY5LjYyIDEyMzYuMjggNDY5LjYyIDEyMzguNzkgNDY2Ljk5IDEyMzguNzkgNDYyLjEyTDEyMzguNzkgNDQ1LjMxIDEyNDIuOTEgNDQ1LjMxIDEyNDIuOTEgNDYyLjRDMTI0Mi45MSA0NjkuNDcgMTIzOC41OSA0NzMuMiAxMjMyLjA3IDQ3My4yIDEyMjUuNTUgNDczLjIgMTIyMS4yNyA0NjkuNDcgMTIyMS4yNyA0NjIuNFoiIGZpbGw9IiMwMjVCRkYiLz48cGF0aCBkPSJNMTI1NC43MyA0NDUuMzEgMTI1OC44MiA0NDUuMzEgMTI1OC44MiA0NzIuODEgMTI1NC43MyA0NzIuODEgMTI1NC43MyA0NDUuMzFaIiBmaWxsPSIjMDI1QkZGIi8+PC9nPjxnPjxwYXRoIGQ9Ik0xNDc0LjkxIDQ2NC40OCAxNDc5LjA3IDQ2NC40OEMxNDc5LjIzIDQ2Ny40MyAxNDgxLjE5IDQ2OS43NCAxNDg1Ljc1IDQ2OS43NCAxNDg5Ljg0IDQ2OS43NCAxNDkxLjk2IDQ2Ny45MyAxNDkxLjk2IDQ2NS4xIDE0OTEuOTYgNDYyLjI3IDE0OTAuMDQgNDYxLjI1IDE0ODcuMDEgNDYwLjY2TDE0ODMuMzIgNDU5LjkxQzE0NzguNjUgNDU4Ljk3IDE0NzUuNyA0NTYuNzcgMTQ3NS43IDQ1Mi41MiAxNDc1LjcgNDQ3Ljc3IDE0NzkuMzUgNDQ0Ljk0IDE0ODUuNTYgNDQ0Ljk0IDE0OTEuNzcgNDQ0Ljk0IDE0OTUuNDYgNDQ3LjgxIDE0OTUuNDYgNDUyLjY0TDE0OTEuMyA0NTIuNjRDMTQ5MS4yNiA0NTAuMDUgMTQ4OS4yNiA0NDguNCAxNDg1LjQ5IDQ0OC40IDE0ODEuNTIgNDQ4LjQgMTQ3OS45NSA0NTAuMjUgMTQ3OS45NSA0NTIuNTIgMTQ3OS45NSA0NTQuNDQgMTQ4MS4xMyA0NTUuOTQgMTQ4NC4zOSA0NTYuNjFMMTQ4Ny45MiA0NTcuMzJDMTQ5My40MiA0NTguNDIgMTQ5Ni4yNSA0NjAuNjYgMTQ5Ni4yNSA0NjUuMDYgMTQ5Ni4yNSA0NzAuNCAxNDkyLjA1IDQ3My4xOSAxNDg1LjcyIDQ3My4xOSAxNDc4Ljc3IDQ3My4xOSAxNDc0LjkyIDQ2OS43NyAxNDc0LjkyIDQ2NC40N1oiLz48cGF0aCBkPSJNMTUwNy41MSA0NDUuMzEgMTUyNS4zOCA0NDUuMzEgMTUyNS4zOCA0NDguODggMTUxMS41OSA0NDguODggMTUxMS41OSA0NTcuMTMgMTUyNC4yIDQ1Ny4xMyAxNTI0LjIgNDYwLjM5IDE1MTEuNTkgNDYwLjM5IDE1MTEuNTkgNDY5LjIzIDE1MjUuNzcgNDY5LjIzIDE1MjUuNzcgNDcyLjggMTUwNy41IDQ3Mi44IDE1MDcuNSA0NDUuM1oiLz48cGF0aCBkPSJNMTUzNi42NiA0NjIuNCAxNTM2LjY2IDQ0NS4zMSAxNTQwLjc1IDQ0NS4zMSAxNTQwLjc1IDQ2Mi4xMkMxNTQwLjc1IDQ2Ni45OSAxNTQzLjI2IDQ2OS42MiAxNTQ3LjQ3IDQ2OS42MiAxNTUxLjY4IDQ2OS42MiAxNTU0LjE5IDQ2Ni45OSAxNTU0LjE5IDQ2Mi4xMkwxNTU0LjE5IDQ0NS4zMSAxNTU4LjMxIDQ0NS4zMSAxNTU4LjMxIDQ2Mi40QzE1NTguMzEgNDY5LjQ3IDE1NTMuOTkgNDczLjIgMTU0Ny40NyA0NzMuMiAxNTQwLjk1IDQ3My4yIDE1MzYuNjcgNDY5LjQ3IDE1MzYuNjcgNDYyLjRaIi8+PC9nPjxnPjxwYXRoIGQ9Ik0xNTg3LjkzIDQ0NS4zMSAxNTkyLjMzIDQ0NS4zMSAxNjA1Ljc2IDQ2Ni40IDE2MDUuODggNDY2LjQgMTYwNS44OCA0NDUuMzEgMTYwOS45NyA0NDUuMzEgMTYwOS45NyA0NzIuODEgMTYwNS40MSA0NzIuODEgMTU5Mi4wOSA0NTEuOTEgMTU5Mi4wMSA0NTEuOTEgMTU5Mi4wMSA0NzIuODEgMTU4Ny45MiA0NzIuODEgMTU4Ny45MiA0NDUuMzFaIi8+PHBhdGggZD0iTTE2MjEuODcgNDQ1LjMxIDE2MzkuNzQgNDQ1LjMxIDE2MzkuNzQgNDQ4Ljg4IDE2MjUuOTUgNDQ4Ljg4IDE2MjUuOTUgNDU3LjEzIDE2MzguNTYgNDU3LjEzIDE2MzguNTYgNDYwLjM5IDE2MjUuOTUgNDYwLjM5IDE2MjUuOTUgNDY5LjIzIDE2NDAuMTMgNDY5LjIzIDE2NDAuMTMgNDcyLjggMTYyMS44NiA0NzIuOCAxNjIxLjg2IDQ0NS4zWiIvPjxwYXRoIGQ9Ik0xNjUwLjI3IDQ1OS4xNEMxNjUwLjI3IDQ0OS45MSAxNjU1LjM0IDQ0NC45NiAxNjYyLjggNDQ0Ljk2IDE2NjguMjYgNDQ0Ljk2IDE2NzIuNjIgNDQ3LjU5IDE2NzMuNjQgNDUyLjg5TDE2NjkuNTkgNDUyLjg5QzE2NjguNjEgNDQ5LjgzIDE2NjYuMDIgNDQ4LjQ5IDE2NjIuNzkgNDQ4LjQ5IDE2NTcuMjkgNDQ4LjQ5IDE2NTQuMzQgNDUyLjQyIDE2NTQuMzQgNDU5LjAyIDE2NTQuMzQgNDY1LjYyIDE2NTcuMzYgNDY5LjY3IDE2NjIuODYgNDY5LjY3IDE2NjcuMDYgNDY5LjY3IDE2NzAuNCA0NjcuMzEgMTY3MC4zNiA0NjEuN0wxNjY0IDQ2MS43IDE2NjQgNDU4LjQgMTY3NC40MSA0NTguNCAxNjc0LjQxIDQ2MC42QzE2NzQuNDEgNDY4Ljg5IDE2NzAuMDkgNDczLjIxIDE2NjIuODIgNDczLjIxIDE2NTUuMDQgNDczLjIxIDE2NTAuMjUgNDY4LjE4IDE2NTAuMjUgNDU5LjE1WiIvPjxwYXRoIGQ9Ik0xNjg1LjE1IDQ1OS4wNkMxNjg1LjE1IDQ1MC4xOCAxNjkwLjQxIDQ0NC45NiAxNjk3Ljg0IDQ0NC45NiAxNzA1LjI3IDQ0NC45NiAxNzEwLjQ5IDQ1MC4xOCAxNzEwLjQ5IDQ1OS4wNiAxNzEwLjQ5IDQ2Ny45NCAxNzA1LjIzIDQ3My4yIDE2OTcuODQgNDczLjIgMTY5MC40NSA0NzMuMiAxNjg1LjE1IDQ2Ny45NCAxNjg1LjE1IDQ1OS4wNlpNMTcwNi4zMyA0NTkuMDZDMTcwNi4zMyA0NTIuMjIgMTcwMi44NyA0NDguNDkgMTY5Ny44NCA0NDguNDkgMTY5Mi44MSA0NDguNDkgMTY4OS4zMiA0NTIuMjIgMTY4OS4zMiA0NTkuMDYgMTY4OS4zMiA0NjUuOSAxNjkyLjc4IDQ2OS42NyAxNjk3Ljg0IDQ2OS42NyAxNzAyLjkgNDY5LjY3IDE3MDYuMzMgNDY1LjkgMTcwNi4zMyA0NTkuMDZaTTE2OTkuOTYgNDM3LjY1IDE3MDMuNSA0MzcuNjUgMTY5OS40OSA0NDIuOTEgMTY5NS45NiA0NDIuOTEgMTY5OS45NyA0MzcuNjVaIi8+PHBhdGggZD0iTTE3MjEuMDIgNDU5LjA2QzE3MjEuMDIgNDQ5Ljk1IDE3MjYuMDkgNDQ0Ljk2IDE3MzMuNjMgNDQ0Ljk2IDE3MzkuMzMgNDQ0Ljk2IDE3NDMuNzYgNDQ3LjgzIDE3NDQuNTUgNDUzLjg0TDE3NDAuNTQgNDUzLjg0QzE3MzkuNjggNDUwLjI3IDE3MzcuMDQgNDQ4LjUgMTczMy41MSA0NDguNSAxNzI4LjI1IDQ0OC41IDE3MjUuMTQgNDUyLjQ3IDE3MjUuMTQgNDU5LjA3IDE3MjUuMTQgNDY1LjY3IDE3MjguMiA0NjkuNjggMTczMy41MSA0NjkuNjggMTczNy4wNCA0NjkuNjggMTczOS42OCA0NjcuOTEgMTc0MC41NCA0NjQuM0wxNzQ0LjU1IDQ2NC4zQzE3NDMuNzYgNDcwLjM1IDE3MzkuMzMgNDczLjIyIDE3MzMuNTkgNDczLjIyIDE3MjYuMDkgNDczLjIyIDE3MjEuMDIgNDY4LjIzIDE3MjEuMDIgNDU5LjA4WiIvPjxwYXRoIGQ9Ik0xNzU1LjIzIDQ0NS4zMSAxNzU5LjMyIDQ0NS4zMSAxNzU5LjMyIDQ3Mi44MSAxNzU1LjIzIDQ3Mi44MSAxNzU1LjIzIDQ0NS4zMVoiLz48cGF0aCBkPSJNMTc3MC40IDQ1OS4wNkMxNzcwLjQgNDUwLjE4IDE3NzUuNjYgNDQ0Ljk2IDE3ODMuMDkgNDQ0Ljk2IDE3OTAuNTIgNDQ0Ljk2IDE3OTUuNzQgNDUwLjE4IDE3OTUuNzQgNDU5LjA2IDE3OTUuNzQgNDY3Ljk0IDE3OTAuNDggNDczLjIgMTc4My4wOSA0NzMuMiAxNzc1LjcgNDczLjIgMTc3MC40IDQ2Ny45NCAxNzcwLjQgNDU5LjA2Wk0xNzkxLjU3IDQ1OS4wNkMxNzkxLjU3IDQ1Mi4yMiAxNzg4LjExIDQ0OC40OSAxNzgzLjA4IDQ0OC40OSAxNzc4LjA1IDQ0OC40OSAxNzc0LjU2IDQ1Mi4yMiAxNzc0LjU2IDQ1OS4wNiAxNzc0LjU2IDQ2NS45IDE3NzguMDIgNDY5LjY3IDE3ODMuMDggNDY5LjY3IDE3ODguMTQgNDY5LjY3IDE3OTEuNTcgNDY1LjkgMTc5MS41NyA0NTkuMDZaIi8+PHBhdGggZD0iTTE4MDUuODcgNDcwLjYxQzE4MDUuODcgNDY5LjIgMTgwNy4wNSA0NjguMDIgMTgwOC40NiA0NjguMDIgMTgwOS44NyA0NjguMDIgMTgxMS4wOSA0NjkuMiAxODExLjA5IDQ3MC42MSAxODExLjA5IDQ3Mi4wMiAxODA5LjkxIDQ3My4yIDE4MDguNDYgNDczLjIgMTgwNy4wMSA0NzMuMiAxODA1Ljg3IDQ3Mi4wNiAxODA1Ljg3IDQ3MC42MVoiLz48L2c+PGc+PHBhdGggZD0iTTEyOTMuODkgNDU5LjA2QzEyOTMuODkgNDQ5Ljk1IDEyOTguOTYgNDQ0Ljk2IDEzMDYuNSA0NDQuOTYgMTMxMi4yIDQ0NC45NiAxMzE2LjYzIDQ0Ny44MyAxMzE3LjQyIDQ1My44NEwxMzEzLjQxIDQ1My44NEMxMzEyLjU1IDQ1MC4yNyAxMzA5LjkxIDQ0OC41IDEzMDYuMzggNDQ4LjUgMTMwMS4xMiA0NDguNSAxMjk4LjAxIDQ1Mi40NyAxMjk4LjAxIDQ1OS4wNyAxMjk4LjAxIDQ2NS42NyAxMzAxLjA3IDQ2OS42OCAxMzA2LjM4IDQ2OS42OCAxMzA5LjkyIDQ2OS42OCAxMzEyLjU1IDQ2Ny45MSAxMzEzLjQxIDQ2NC4zTDEzMTcuNDIgNDY0LjNDMTMxNi42MyA0NzAuMzUgMTMxMi4yIDQ3My4yMiAxMzA2LjQ2IDQ3My4yMiAxMjk4Ljk2IDQ3My4yMiAxMjkzLjg5IDQ2OC4yMyAxMjkzLjg5IDQ1OS4wOFoiLz48cGF0aCBkPSJNMTMyNy4yIDQ1OS4wNkMxMzI3LjIgNDUwLjE4IDEzMzIuNDYgNDQ0Ljk2IDEzMzkuODkgNDQ0Ljk2IDEzNDcuMzIgNDQ0Ljk2IDEzNTIuNTQgNDUwLjE4IDEzNTIuNTQgNDU5LjA2IDEzNTIuNTQgNDY3Ljk0IDEzNDcuMjggNDczLjIgMTMzOS44OSA0NzMuMiAxMzMyLjUgNDczLjIgMTMyNy4yIDQ2Ny45NCAxMzI3LjIgNDU5LjA2Wk0xMzQ4LjM4IDQ1OS4wNkMxMzQ4LjM4IDQ1Mi4yMiAxMzQ0LjkyIDQ0OC40OSAxMzM5Ljg5IDQ0OC40OSAxMzM0Ljg2IDQ0OC40OSAxMzMxLjM3IDQ1Mi4yMiAxMzMxLjM3IDQ1OS4wNiAxMzMxLjM3IDQ2NS45IDEzMzQuODMgNDY5LjY3IDEzMzkuODkgNDY5LjY3IDEzNDQuOTUgNDY5LjY3IDEzNDguMzggNDY1LjkgMTM0OC4zOCA0NTkuMDZaIi8+PHBhdGggZD0iTTEzNjMuMzQgNDQ1LjMxIDEzNjguMzcgNDQ1LjMxIDEzNzcuNTYgNDY3LjM5IDEzODYuNzUgNDQ1LjMxIDEzOTEuNzggNDQ1LjMxIDEzOTEuNzggNDcyLjgxIDEzODcuNjkgNDcyLjgxIDEzODcuNjkgNDUyLjYyIDEzODcuNTMgNDUyLjYyIDEzNzkuMTYgNDcyLjgxIDEzNzUuOTQgNDcyLjgxIDEzNjcuNTMgNDUyLjYyIDEzNjcuNDEgNDUyLjYyIDEzNjcuNDEgNDcyLjgxIDEzNjMuMzIgNDcyLjgxIDEzNjMuMzIgNDQ1LjMxWiIvPjwvZz48cGF0aCBkPSJNMTQyMC42MyA0NTkuMDZDMTQyMC42MyA0NTAuMTggMTQyNS44OSA0NDQuOTYgMTQzMy4zMiA0NDQuOTYgMTQ0MC43NSA0NDQuOTYgMTQ0NS45NyA0NTAuMTggMTQ0NS45NyA0NTkuMDYgMTQ0NS45NyA0NjcuOTQgMTQ0MC43MSA0NzMuMiAxNDMzLjMyIDQ3My4yIDE0MjUuOTMgNDczLjIgMTQyMC42MyA0NjcuOTQgMTQyMC42MyA0NTkuMDZaTTE0NDEuOCA0NTkuMDZDMTQ0MS44IDQ1Mi4yMiAxNDM4LjM0IDQ0OC40OSAxNDMzLjMxIDQ0OC40OSAxNDI4LjI4IDQ0OC40OSAxNDI0Ljc4IDQ1Mi4yMiAxNDI0Ljc4IDQ1OS4wNiAxNDI0Ljc4IDQ2NS45IDE0MjguMjQgNDY5LjY3IDE0MzMuMzEgNDY5LjY3IDE0MzguMzggNDY5LjY3IDE0NDEuOCA0NjUuOSAxNDQxLjggNDU5LjA2WiIvPjwvZz48L2c+PC9nPjwvZz48L3N2Zz4="></div>
+    <div class="pj-brand-txt">
+      <div class="pj-eyebrow">PMO · Gestão de projetos JDE</div>
+      <h1>Painel de Projetos</h1>
+      <p class="pj-take" id="take">Carregando a carteira…</p>
+    </div>
+  </header>
+
+  <section class="pj-kpis" id="indicadores" aria-label="Indicadores">
+    <div class="pj-card pj-kpi"><span class="pj-lbl">Com P.O. + dev + entrega</span><span class="pj-v" id="k-completos">—</span><span class="pj-sub" id="k-completos-sub">dos projetos ativos</span><span class="pj-meta">Meta 100%</span></div>
+    <div class="pj-card pj-kpi"><span class="pj-lbl">Fases atrasadas agora</span><span class="pj-v" id="k-atrasados">—</span><span class="pj-sub" id="k-atrasados-sub">—</span><span class="pj-meta">Meta 0</span></div>
+    <div class="pj-card pj-kpi"><span class="pj-lbl">Fases entregues no prazo</span><span class="pj-v" id="k-aderencia">—</span><span class="pj-sub" id="k-aderencia-sub">—</span><span class="pj-meta">Meta ≥ 80%</span></div>
+    <div class="pj-card pj-kpi"><span class="pj-lbl">Prazos nos próximos 14 dias</span><span class="pj-v" id="k-proximos">—</span><span class="pj-sub">funcional, dev, teste, homolog. ou produção</span><span class="pj-meta">Acompanhar na semana</span></div>
+    <div class="pj-card pj-kpi"><span class="pj-lbl">Parados (+7 dias sem atualizar)</span><span class="pj-v" id="k-parados">—</span><span class="pj-sub">projetos ativos</span><span class="pj-meta">Meta 30d: até 3 · 90d: 0</span></div>
+    <div class="pj-card pj-kpi"><span class="pj-lbl">Entregas em produção no mês</span><span class="pj-v" id="k-mes">—</span><span class="pj-sub" id="k-mes-sub">—</span><span class="pj-meta">Meta 30d: 2 · 90d: 3</span></div>
+  </section>
+
+  <div class="pj-strip" id="status-carteira" aria-label="Status dos projetos ativos"></div>
+
+  <nav class="pj-tabs" role="tablist" aria-label="Seções">
+    <button class="pj-tab" role="tab" data-tab="visao" aria-selected="true">Visão geral</button>
+    <button class="pj-tab" role="tab" data-tab="prioridades" aria-selected="false">Prioridades</button>
+    <button class="pj-tab" role="tab" data-tab="po" aria-selected="false">Gestão por P.O.</button>
+    <button class="pj-tab" role="tab" data-tab="dev" aria-selected="false">Desenvolvedores</button>
+    <button class="pj-tab" role="tab" data-tab="equipe" aria-selected="false">Equipe</button>
+    <button class="pj-tab" role="tab" data-tab="esteira" aria-selected="false">Esteira de entregas</button>
+    <button class="pj-tab" role="tab" data-tab="projetos" aria-selected="false">Projetos</button>
+    <button class="pj-tab" role="tab" data-tab="rapido" aria-selected="false">Caixa rápido</button>
+  </nav>
+
+  <!-- VISÃO GERAL -->
+  <section class="pj-page" id="visao">
+    <div class="pj-card" id="card-prazos">
+      <h2>Próximos prazos e atrasos</h2>
+      <p class="pj-note">Fim previsto da fase atual de cada projeto, do mais urgente ao mais distante. Responsável pela fase: Funcional e Teste unitário = P.O.; Desenvolvimento e Produção = Dev; Homologação = cliente.</p>
+      <div class="pj-tw"><table class="pj-t" id="t-prazos"><thead><tr><th>Projeto</th><th>Fase atual</th><th>Responsável</th><th>Fim previsto</th><th class="num">Dias</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="pj-grid">
+      <div class="pj-card" id="card-fases">
+        <h2>Projetos por fase</h2>
+        <p class="pj-note">Fase atual = primeira fase sem data real de conclusão</p>
+        <div class="pj-bars" id="fases"></div>
+      </div>
+      <div class="pj-card" id="card-prioridade">
+        <h2>Prioridade × status</h2>
+        <p class="pj-note">Projetos ativos</p>
+        <div class="pj-tw"><table class="pj-t" id="t-prio"><thead><tr><th>Prioridade</th><th class="num">No prazo</th><th class="num">Em risco</th><th class="num">Parado</th><th class="num">Atrasado</th><th class="num">Incompleto</th><th class="num">Total</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+    <div class="pj-card" id="card-pendencias">
+      <h2>Pendências do cliente</h2>
+      <p class="pj-note">Régua em dias úteis: D+3 lembrete · D+5 sponsor (vira Em risco) · D+10 sócio decide</p>
+      <div class="pj-tw"><table class="pj-t" id="t-pend"><thead><tr><th>Projeto</th><th>Pendência</th><th>P.O.</th><th>Desde</th><th class="num">Dias úteis</th><th>Régua</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="pj-card" id="card-horas">
+      <h2>Horas apontadas × vendidas</h2>
+      <p class="pj-note">Projetos ativos. Contorno = vendido; barra = apontado; vermelho = acima do vendido</p>
+      <div class="pj-hrs" id="horas"></div>
+    </div>
+  </section>
+
+  <!-- PRIORIDADES -->
+  <section class="pj-page" id="prioridades" hidden>
+    <p class="pj-def">Cada P.O. tem a sua própria fila: <b>1 é o projeto mais importante daquele P.O.</b> (a Thaynara tem o 1 dela e o Danilo tem o 1 dele). Digite o número e aperte Enter. Se o número já estiver em uso no mesmo P.O., quem estava nele e os seguintes descem uma posição. Apague o número para tirar o projeto da fila. Ao trocar o P.O. de um projeto, ele sai da fila antiga e fica sem número no novo P.O. <span class="pj-saved" id="ord-saved" aria-live="polite"></span></p>
+    <section class="pj-kpis" aria-label="Métricas de prioridade">
+      <div class="pj-card pj-kpi"><span class="pj-lbl">Prioridade 1 de cada P.O. no prazo</span><span class="pj-v" id="o-top5">—</span><span class="pj-sub" id="o-top5-sub">—</span><span class="pj-meta">Meta: todas</span></div>
+      <div class="pj-card pj-kpi"><span class="pj-lbl">Top 3 de cada P.O. com cadastro completo</span><span class="pj-v" id="o-top10">—</span><span class="pj-sub">P.O., dev e data de produção</span><span class="pj-meta">Meta 100%</span></div>
+      <div class="pj-card pj-kpi"><span class="pj-lbl">Atrasados ou parados no Top 3</span><span class="pj-v" id="o-risco10">—</span><span class="pj-sub" id="o-risco10-sub">—</span><span class="pj-meta">Meta 0</span></div>
+      <div class="pj-card pj-kpi"><span class="pj-lbl">Ativos sem número de prioridade</span><span class="pj-v" id="o-sem">—</span><span class="pj-sub" id="o-sem-sub">aguardando sua definição</span><span class="pj-meta">Meta 0</span></div>
+      <div class="pj-card pj-kpi"><span class="pj-lbl">Posição média dos atrasados</span><span class="pj-v" id="o-media">—</span><span class="pj-sub">dentro da fila do P.O.</span><span class="pj-meta">Atraso deve ficar no fim da fila</span></div>
+    </section>
+    <div class="pj-card" id="card-faixas">
+      <h2>Status por posição na fila do P.O.</h2>
+      <p class="pj-note">Projetos ativos com número, somando todos os P.O.s</p>
+      <div class="pj-legend" id="faixas-leg"></div>
+      <div class="pj-faixas" id="faixas"></div>
+    </div>
+    <div class="pj-card" id="card-ordem">
+      <div class="pj-row">
+        <h2>Filas de prioridade por P.O.</h2>
+        <div class="pj-ctl"><label for="ord-po">P.O.</label><select id="ord-po"><option value="">Todos</option></select><label><input type="checkbox" id="ord-concl"> Mostrar concluídos</label></div>
+      </div>
+      <div class="pj-tw pj-tw-ord"><table class="pj-t" id="t-ord"><thead><tr><th>Prioridade</th><th>Projeto</th><th>Dev</th><th>Fase atual</th><th>Próximo prazo</th><th>Produção</th><th>Status</th><th><span class="pj-sr">Ações</span></th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- GESTÃO POR P.O. -->
+  <section class="pj-page" id="po" hidden>
+    <p class="pj-def">O P.O. responde pelo <b>fim da funcional</b> e pelo <b>fim do teste unitário</b>. Índice de prazo = fases do P.O. entregues no prazo ÷ (fases entregues + fases vencidas em aberto).</p>
+    <div class="pj-card" id="card-rank-po">
+      <h2>Ranking de P.O.</h2>
+      <div class="pj-tw"><table class="pj-t" id="t-rank-po"><thead><tr><th>#</th><th>P.O.</th><th class="num">Ativos</th><th class="num">Funcional no prazo</th><th class="num">Teste no prazo</th><th class="num">Vencidos em aberto</th><th class="num">Atraso médio</th><th>Índice de prazo</th><th class="num">Próx. 14 dias</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="pj-card" id="card-tempo-po">
+      <h2>Tempo de projeto por P.O.</h2>
+      <p class="pj-note">Dias corridos entre o <b>fim real da funcional</b> e o <b>fim real da produção</b>. Concluídos mostram o tempo total; em andamento mostram quantos dias se passaram desde a funcional real até hoje.</p>
+      <div class="pj-tw"><table class="pj-t" id="t-tempo-po"><thead><tr><th>P.O.</th><th class="num">Concluídos</th><th>Tempo médio</th><th class="num">Mais rápido</th><th class="num">Mais longo</th><th class="num">Em andamento</th><th class="num">Média em andamento</th><th class="num">Mais antigo em aberto</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="pj-card" id="card-po-detalhe">
+      <div class="pj-row">
+        <h2 id="po-titulo">Projetos do P.O.</h2>
+        <div class="pj-ctl"><label for="po-sel">P.O.</label><select id="po-sel"></select></div>
+      </div>
+      <p class="pj-note">Previsto × real de cada fase sob responsabilidade do P.O. Clique no projeto para abrir a gestão completa.</p>
+      <div class="pj-tw"><table class="pj-t" id="t-po"><thead><tr><th>Projeto</th><th>Fase atual</th><th>Funcional prev.</th><th>Funcional real</th><th>Teste prev.</th><th>Teste real</th><th>Entrega</th><th>Tempo func. → prod.</th><th>Próximo passo</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- DESENVOLVEDORES -->
+  <section class="pj-page" id="dev" hidden>
+    <p class="pj-def">O desenvolvedor responde pelo <b>fim do desenvolvimento</b> e pela <b>produção</b>. Regra: no máximo 2 projetos em desenvolvimento por dev.</p>
+    <div class="pj-card" id="card-rank-dev">
+      <h2>Ranking e carga de desenvolvedores</h2>
+      <div class="pj-tw"><table class="pj-t" id="t-rank-dev"><thead><tr><th>#</th><th>Desenvolvedor</th><th class="num">Em desenv.</th><th class="num">Ativos</th><th class="num">Dev no prazo</th><th class="num">Retornos</th><th class="num">Vencidos em aberto</th><th class="num">Atraso médio</th><th>Índice de prazo</th><th class="num">Horas apont.</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="pj-card" id="card-dev-detalhe">
+      <div class="pj-row">
+        <h2 id="dev-titulo">Projetos do desenvolvedor</h2>
+        <div class="pj-ctl"><label for="dev-sel">Dev</label><select id="dev-sel"></select></div>
+      </div>
+      <div class="pj-tw"><table class="pj-t" id="t-dev"><thead><tr><th>Projeto</th><th>P.O.</th><th>Fase atual</th><th>Dev prev.</th><th>Dev real</th><th>Produção prev.</th><th>Produção real</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- EQUIPE -->
+  <section class="pj-page" id="equipe" hidden>
+    <section class="pj-kpis" aria-label="Resumo da equipe">
+      <div class="pj-card pj-kpi"><span class="pj-lbl">Pessoas na carteira</span><span class="pj-v" id="e-pessoas">—</span><span class="pj-sub" id="e-pessoas-sub">—</span></div>
+      <div class="pj-card pj-kpi"><span class="pj-lbl">Média de projetos ativos por pessoa</span><span class="pj-v" id="e-media">—</span><span class="pj-sub">contando P.O. e dev</span></div>
+      <div class="pj-card pj-kpi"><span class="pj-lbl">Mais carregado</span><span class="pj-v pj-v-nome" id="e-top">—</span><span class="pj-sub" id="e-top-sub">—</span></div>
+      <div class="pj-card pj-kpi"><span class="pj-lbl">Projetos ativos sem responsável</span><span class="pj-v" id="e-sem">—</span><span class="pj-sub" id="e-sem-sub">—</span><span class="pj-meta">Meta 0</span></div>
+    </section>
+    <div class="pj-card" id="card-equipe">
+      <div class="pj-row">
+        <h2>Pessoas e projetos</h2>
+        <div class="pj-ctl">
+          <label for="eq-papel">Papel</label><select id="eq-papel"><option value="">Todos</option><option value="po">P.O.</option><option value="dev">Dev</option></select>
+          <input type="search" id="eq-q" placeholder="Buscar nome…" aria-label="Buscar nome">
+        </div>
+      </div>
+      <p class="pj-note">Cada nome com quantos projetos tem como P.O. e como dev. Clique no nome para ver os projetos. Nomes iguais com maiúsculas ou espaços diferentes são somados juntos.</p>
+      <div class="pj-tw pj-tw-eq"><table class="pj-t" id="t-equipe"><thead><tr><th>Nome</th><th>Papel</th><th class="num">Como P.O.</th><th class="num">Como dev</th><th>Total de projetos</th><th class="num">Ativos</th><th class="num">Em desenv.</th><th class="num">Atrasados</th><th class="num">Concluídos</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ESTEIRA -->
+  <section class="pj-page" id="esteira" hidden>
+    <div class="pj-card" id="card-esteira">
+      <div class="pj-row">
+        <h2>Esteira de entregas por P.O.</h2>
+        <div class="pj-ctl">
+          <label for="est-po">P.O.</label><select id="est-po"><option value="">Todos</option></select>
+          <label><input type="checkbox" id="est-concl"> Mostrar concluídos</label>
+        </div>
+      </div>
+      <p class="pj-note">Barras pelas datas previstas de cada fase. Fase concluída em cor cheia, com traço na data real; fase atual contornada; futuras claras. O ponto no fim é a entrega, na cor do status.</p>
+      <div class="pj-legend" id="est-legend"></div>
+      <p class="pj-note" id="est-semdata"></p>
+      <div class="pj-est-wrap" id="esteira-chart"></div>
+    </div>
+  </section>
+
+  <!-- PROJETOS -->
+  <section class="pj-page" id="projetos" hidden>
+    <div class="pj-card" id="card-projetos">
+      <div class="pj-row">
+        <h2 id="tb-titulo">Carteira de projetos</h2>
+        <div class="pj-ctl">
+          <label for="tb-po">P.O.</label><select id="tb-po"><option value="">Todos</option></select>
+          <label for="tb-falta">Cadastro</label><select id="tb-falta"><option value="">Todos</option><option value="qualquer">Incompletos</option><option value="po">Sem P.O.</option><option value="dev">Sem dev</option><option value="data">Sem data de produção</option></select>
+          <input type="search" id="tb-q" placeholder="Buscar projeto, cliente, dev…" aria-label="Buscar">
+          <button type="button" class="pj-btn" id="btn-export">Exportar CSV</button>
+          <label class="pj-btn" for="in-import">Importar CSV</label><input type="file" id="in-import" accept=".csv,text/csv" class="pj-sr">
+          <button type="button" class="pj-btn pj-primary" id="btn-novo">+ Novo projeto</button>
+        </div>
+      </div>
+      <p class="pj-note">Edite direto na tabela os responsáveis, a prioridade e o fim previsto de cada fase. <b>Concluir fase</b> grava hoje como data real da fase atual. <b>Gerenciar</b> abre previsto × real, horas, pendências e observações. Tudo fica no banco compartilhado. <span class="pj-saved" id="tb-saved" aria-live="polite"></span></p>
+      <div class="pj-topscroll" id="tb-top" aria-hidden="true"><div></div></div>
+      <div class="pj-tw pj-tw-edit" id="tb-wrap">
+        <table class="pj-t pj-edit" id="tb-projetos">
+          <thead><tr>
+            <th><button data-k="ordem">Prior.</button></th>
+            <th><button data-k="projeto">Projeto</button></th>
+            <th><button data-k="po">P.O.</button></th>
+            <th><button data-k="dev">Dev</button></th>
+            <th><button data-k="prioridade">Prioridade</button></th>
+            <th><button data-k="fase">Fase atual</button></th>
+            <th><button data-k="funcional_prev">Fim funcional</button></th>
+            <th><button data-k="dev_prev">Fim dev</button></th>
+            <th class="pj-rth" title="Retornos do teste unitário para o desenvolvimento">Ret.<br>teste</th>
+            <th><button data-k="teste_prev">Fim teste</button></th>
+            <th><button data-k="homolog_prev">Fim homolog.</button></th>
+            <th class="pj-rth" title="Retornos da homologação para o desenvolvimento">Ret.<br>homolog.</th>
+            <th><button data-k="producao_prev">Produção</button></th>
+            <th><button data-k="status">Status</button></th>
+            <th><span class="pj-sr">Ações</span></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="pj-card" id="card-finalizados">
+      <div class="pj-row"><h2 id="fin-titulo">Projetos finalizados</h2><span class="pj-muted" id="fin-contagem"></span></div>
+      <p class="pj-note">Projetos com produção real preenchida. Ficam aqui, fora da tabela de ativos. Para reabrir, entre em Gerenciar e apague o fim real da produção.</p>
+      <div class="pj-tw"><table class="pj-t" id="tb-fin"><thead><tr><th>Prior.</th><th>Projeto</th><th>P.O.</th><th>Dev</th><th>Funcional real</th><th>Produção prevista</th><th>Produção real</th><th class="num">Desvio</th><th>Tempo func. → prod.</th><th>Resultado</th><th><span class="pj-sr">Ações</span></th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <datalist id="dl-po"></datalist>
+  <datalist id="dl-dev"></datalist>
+  <datalist id="dl-cliente"></datalist>
+
+  <!-- RETORNOS AO DESENVOLVIMENTO -->
+  <div class="pj-modal pj-modal-top" id="rt-modal" hidden>
+    <div class="pj-sheet" role="dialog" aria-modal="true" aria-labelledby="rt-title">
+      <div class="pj-row">
+        <div><div class="pj-eyebrow" id="rt-eyebrow">Retornos ao desenvolvimento</div><h2 id="rt-title">Projeto</h2></div>
+        <button type="button" class="pj-x" id="rt-close" aria-label="Fechar">×</button>
+      </div>
+      <p class="pj-note">Quando o teste unitário ou a homologação devolve o projeto para o desenvolvimento, registre aqui. Pode registrar quantas vezes precisar. Deixe o fim em branco enquanto o dev ainda está corrigindo.</p>
+      <div class="pj-form">
+        <fieldset>
+          <legend id="rt-legend">Novo retorno</legend>
+          <label class="pj-f">Retornou de<select id="rt-origem"><option value="teste">Teste unitário</option><option value="homolog">Homologação</option></select></label>
+          <label class="pj-f">Data do retorno ao dev<input id="rt-data" type="date"></label>
+          <label class="pj-f">Fim da correção (dev)<input id="rt-fim" type="date"></label>
+          <label class="pj-f pj-wide">Justificativa do retorno<textarea id="rt-just" rows="2" placeholder="Ex.: teste unitário reprovou o cálculo do ICMS-ST nos pedidos de devolução"></textarea></label>
+          <div class="pj-wide pj-logbar"><span class="pj-spacer"></span><span class="pj-msg" id="rt-msg" aria-live="polite"></span><button type="button" class="pj-btn pj-primary" id="rt-add">Registrar retorno</button></div>
+        </fieldset>
+      </div>
+      <div class="pj-tw"><table class="pj-t" id="rt-tabela"><thead><tr><th>#</th><th>Origem</th><th>Retorno</th><th>Fim da correção</th><th class="num">Dias</th><th>Justificativa</th><th><span class="pj-sr">Ações</span></th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+  <!-- GESTÃO DO PROJETO -->
+  <div class="pj-modal" id="modal" hidden>
+    <div class="pj-sheet pj-sheet-wide" role="dialog" aria-modal="true" aria-labelledby="m-title">
+      <div class="pj-row">
+        <div><div class="pj-eyebrow" id="m-eyebrow">Gestão do projeto</div><h2 id="m-title">Projeto</h2></div>
+        <button type="button" class="pj-x" id="m-close" aria-label="Fechar">×</button>
+      </div>
+      <div class="pj-mstatus" id="m-status"></div>
+      <div class="pj-form">
+        <fieldset>
+          <legend>Projeto</legend>
+          <label class="pj-f pj-wide">Título<input id="f-projeto" type="text"></label>
+          <label class="pj-f">Cliente<input id="f-cliente" type="text" list="dl-cliente"></label>
+          <label class="pj-f">P.O.<input id="f-po" type="text" list="dl-po"></label>
+          <label class="pj-f">Desenvolvedor<input id="f-dev" type="text" list="dl-dev"></label>
+          <label class="pj-f">Tipo<select id="f-tipo"><option value="">Projeto</option><option value="rapido">Caixa rápido (projeto curto)</option></select></label>
+          <label class="pj-f">Prioridade<select id="f-prioridade"><option value="">A definir</option><option>Crítica</option><option>Alta</option><option>Média</option><option>Baixa</option></select></label>
+          <label class="pj-f">Início do projeto<input id="f-inicio" type="date"></label>
+        </fieldset>
+        <fieldset class="pj-crono">
+          <legend>Cronograma · previsto × real</legend>
+          <div class="pj-wide pj-tw">
+            <table class="pj-t pj-ctab">
+              <thead><tr><th>Fase</th><th>Responsável</th><th>Fim previsto</th><th>Fim real</th><th class="num">Desvio</th></tr></thead>
+              <tbody id="m-crono"></tbody>
+            </table>
+          </div>
+          <div class="pj-wide pj-rtger" id="m-retornos"></div>
+          <div class="pj-wide pj-dist">
+            <button type="button" class="pj-btn" id="m-dist">Distribuir previstos entre início e produção</button>
+            <span class="pj-hint">Funcional 20%, desenvolvimento 40%, teste unitário 15%, homologação 15%, produção 10% do prazo. Só preenche fases sem data prevista.</span>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Acompanhamento</legend>
+          <label class="pj-f">Horas vendidas<input id="f-horas_vendidas" type="number" min="0" step="1" inputmode="numeric"></label>
+          <label class="pj-f">Horas apontadas<input id="f-horas_apontadas" type="number" min="0" step="1" inputmode="numeric"></label>
+          <label class="pj-f">Pendência do cliente desde<input id="f-pendencia_cliente_desde" type="date"></label>
+          <label class="pj-f pj-wide">Qual a pendência do cliente<input id="f-pendencia_descricao" type="text" placeholder="Ex.: aguardando massa de teste do key user"></label>
+          <label class="pj-f pj-wide">Próximo passo<input id="f-proximo_passo" type="text" placeholder="Ex.: P.O. revisar funcional com o dev até sexta"></label>
+        </fieldset>
+        <fieldset class="pj-logbox">
+          <legend>Meu status · observações datadas</legend>
+          <div class="pj-wide pj-lognew">
+            <textarea id="log-texto" rows="2" placeholder="Escreva sua observação ou o status de hoje…"></textarea>
+            <div class="pj-logbar">
+              <label class="pj-inline" for="log-autor">Autor</label><input id="log-autor" type="text" placeholder="seu nome" class="pj-logautor">
+              <span class="pj-spacer"></span><span class="pj-msg" id="log-msg" aria-live="polite"></span>
+              <button type="button" class="pj-btn pj-primary" id="log-add">Registrar status</button>
+            </div>
+          </div>
+          <ol class="pj-wide pj-log" id="log-lista"></ol>
+        </fieldset>
+      </div>
+      <p class="pj-warn" id="m-warn" hidden></p>
+      <div class="pj-actions">
+        <button type="button" class="pj-btn pj-danger" id="m-del">Excluir</button>
+        <span class="pj-confirm" id="m-confirm" hidden>Excluir este projeto? <button type="button" class="pj-btn pj-danger" id="m-del-yes">Sim, excluir</button> <button type="button" class="pj-btn" id="m-del-no">Não</button></span>
+        <span class="pj-spacer"></span>
+        <span class="pj-msg" id="m-msg" aria-live="polite"></span>
+        <button type="button" class="pj-btn" id="m-cancel">Cancelar</button>
+        <button type="button" class="pj-btn pj-primary" id="m-save">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<script>(() => {
+  /* ================= configuração ================= */
+  const API = 'https://wdtkxveplpkbojtvdpsd.supabase.co/rest/v1/locus_projetos';
+  const KEY = 'sb_publishable_hQaHoKbqCIO-A0ortuET8g_2WjDGvXR';
+  const HDR = { apikey: KEY, 'Content-Type': 'application/json' };
+  const FASES = [
+    { k: 'funcional', n: 'Funcional', r: 'P.O.' },
+    { k: 'dev', n: 'Desenvolvimento', r: 'Dev' },
+    { k: 'teste', n: 'Teste unitário', r: 'P.O.' },
+    { k: 'homolog', n: 'Homologação', r: 'Cliente' },
+    { k: 'producao', n: 'Produção', r: 'Dev' },
+  ];
+  const NOMES_FASE = [...FASES.map((f) => f.n), 'Concluído'];
+  const CAMPOS = ['ordem', 'tipo', 'projeto', 'cliente', 'po', 'dev', 'prioridade', 'inicio',
+    ...FASES.flatMap((f) => [`${f.k}_prev`, `${f.k}_real`]),
+    'horas_vendidas', 'horas_apontadas', 'ultima_atualizacao', 'pendencia_cliente_desde', 'pendencia_descricao', 'proximo_passo', 'observacoes', 'historico', 'apontamentos', 'retornos'];
+  const COR_FASE = [2, 3, 4, 5, 1].map((i) => `var(--pj-f${i})`);
+  const PRIOS = ['Crítica', 'Alta', 'Média', 'Baixa'];
+  const prioCls = { 'Crítica': 'p1', 'Alta': 'p2', 'Média': 'p3', 'Baixa': 'p4' };
+  const prioOrd = { 'Crítica': 0, 'Alta': 1, 'Média': 2, 'Baixa': 3 };
+  const CLS = { 'No prazo': 'ok', 'Entregue no prazo': 'ok', 'Em risco': 'warn', 'Parado': 'par', 'Atrasado': 'bad', 'Incompleto': 'sem', 'Entregue com atraso': 'mut' };
+  const COR = { ok: 'var(--color-ok)', warn: 'var(--color-warn)', par: 'var(--pj-parado)', bad: 'var(--color-bad)', sem: 'var(--lo-ink)', mut: 'var(--color-fg-muted)' };
+  const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+  /* ================= utilidades ================= */
+  const nf = new Intl.NumberFormat('pt-BR');
+  const pf = new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 0 });
+  const DIA = 86400000;
+  const hojeISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const T = (iso) => Date.parse(`${iso}T00:00:00Z`);
+  const diff = (a, b) => Math.round((T(a) - T(b)) / DIA); // a - b em dias
+  const diasUteis = (desde, ate) => { let n = 0; for (let t = T(desde) + DIA; t <= T(ate); t += DIA) { const w = new Date(t).getUTCDay(); if (w !== 0 && w !== 6) n += 1; } return n; };
+  const fd = (s) => (s ? `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}` : '—');
+  const fdc = (s) => (s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : 'sem data');
+  const num = (v) => Number(v) || 0;
+  const el = (tag, c, txt) => { const e = document.createElement(tag); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; };
+  const cls = (s) => CLS[s] || 'mut';
+  const pill = (s) => el('span', `pj-pill ${cls(s)}`, s);
+  const juntaE = (a) => (a.length <= 1 ? a.join('') : `${a.slice(0, -1).join(', ')} e ${a[a.length - 1]}`);
+  const pillA = (a) => { const e = el('span', `pj-pill ${cls(a.status)}`, a.status === 'Incompleto' ? `Falta ${juntaE(a.falta)}` : a.status); if (a.status === 'Incompleto') e.title = 'Cadastro incompleto: preencha para o projeto ser acompanhado'; return e; };
+  const vazioRow = (tb, cols, msg) => { const tr = document.createElement('tr'); const td = el('td', 'pj-vazio', msg); td.colSpan = cols; tr.append(td); tb.replaceChildren(tr); };
+  const sinal = (n) => (n > 0 ? `+${n}` : String(n));
+
+  /* ================= estado ================= */
+  let ROWS = [];
+  let A = new Map();
+  let carregado = false;
+  let aba = 'visao';
+
+  function faseIdx(p) { for (let i = 0; i < FASES.length; i++) if (!p[`${FASES[i].k}_real`]) return i; return FASES.length; }
+  function analisa(p, hoje) {
+    const fi = faseIdx(p);
+    const concl = fi === FASES.length;
+    const semAtual = p.ultima_atualizacao ? diff(hoje, p.ultima_atualizacao) : null;
+    const pend = p.pendencia_cliente_desde ? diasUteis(p.pendencia_cliente_desde, hoje) : null;
+    const r = { fi, fase: NOMES_FASE[fi], concl, semAtual, pend, parado: false, atraso: 0, prazo: '', resp: '', respNome: '' };
+    if (concl) {
+      const d = p.producao_prev ? diff(p.producao_real, p.producao_prev) : 0;
+      r.status = d > 0 ? 'Entregue com atraso' : 'Entregue no prazo'; r.atraso = Math.max(0, d);
+      return r;
+    }
+    const f = FASES[fi];
+    r.prazo = p[`${f.k}_prev`]; r.resp = f.r;
+    r.respNome = f.r === 'P.O.' ? p.po : f.r === 'Dev' ? p.dev : (p.cliente || 'Cliente');
+    r.parado = semAtual == null || semAtual >= 7;
+    r.atraso = r.prazo && r.prazo < hoje ? diff(hoje, r.prazo) : 0;
+    r.folga = r.prazo ? diff(r.prazo, hoje) : null;
+    const rtAb = parseRt(p).filter((x) => !x.fim).sort((a, b) => (b.data || '').localeCompare(a.data || ''))[0];
+    if (rtAb) { r.retAberto = rtAb; r.fase = `Desenvolvimento · retorno ${rtAb.origem === 'homolog' ? 'da homologação' : 'do teste'}`; r.resp = 'Dev'; r.respNome = p.dev; }
+    r.falta = [!p.po.trim() && 'P.O.', !p.dev.trim() && 'dev', !p.producao_prev && 'data de produção'].filter(Boolean);
+    if (r.falta.length) r.status = 'Incompleto';
+    else if (r.atraso > 0) r.status = 'Atrasado';
+    else if (r.parado) r.status = 'Parado';
+    else if ((pend != null && pend > 5) || (r.folga != null && r.folga <= 3)) r.status = 'Em risco';
+    else r.status = 'No prazo';
+    return r;
+  }
+  function recalcular() { const h = hojeISO(); A = new Map(ROWS.map((p) => [p.id, analisa(p, h)])); }
+  const ativos = () => ROWS.filter((p) => !A.get(p.id).concl);
+
+  /* desempenho de fases por pessoa */
+  function desempenho(lista, chaves) {
+    const h = hojeISO(); let entregues = 0, noPrazo = 0, vencidos = 0, somaAtraso = 0, nAtraso = 0, proximos = 0;
+    const porFase = {}; chaves.forEach((k) => { porFase[k] = { e: 0, ok: 0 }; });
+    lista.forEach((p) => {
+      chaves.forEach((k) => {
+        const prev = p[`${k}_prev`], real = p[`${k}_real`];
+        if (real && prev) { entregues += 1; porFase[k].e += 1; const d = diff(real, prev); if (d <= 0) { noPrazo += 1; porFase[k].ok += 1; } else { somaAtraso += d; nAtraso += 1; } }
+        else if (!real && prev) {
+          const a = A.get(p.id);
+          if (FASES[a.fi] && FASES[a.fi].k === k) {
+            if (prev < h) { vencidos += 1; somaAtraso += diff(h, prev); nAtraso += 1; }
+            else if (diff(prev, h) <= 14) proximos += 1;
+          }
+        }
+      });
+    });
+    const base = entregues + vencidos;
+    return { entregues, noPrazo, vencidos, proximos, porFase, indice: base ? noPrazo / base : null, atrasoMedio: nAtraso ? somaAtraso / nAtraso : 0 };
+  }
+
+  /* ================= banco ================= */
+  const banner = document.getElementById('pj-banner');
+  const saved = document.getElementById('tb-saved');
+  const norm = (r) => { const o = { id: String(r.id) }; CAMPOS.forEach((k) => { o[k] = r[k] == null ? '' : String(r[k]); }); return o; };
+  let assinatura = '';
+  async function carregar() {
+    try {
+      const res = await fetch(`${API}?select=*&order=id`, { headers: HDR, cache: 'no-store' });
+      if (!res.ok) throw new Error(String(res.status));
+      const rows = (await res.json()).map(norm);
+      banner.hidden = true;
+      const s = JSON.stringify(rows);
+      if (s !== assinatura) { assinatura = s; ROWS = rows; carregado = true; renderTudo(); }
+      if (!carregado) { carregado = true; renderTudo(); }
+    } catch (e) {
+      banner.textContent = 'Sem conexão com o banco de dados. Verifique a internet; o painel tenta de novo a cada 20 segundos.';
+      banner.hidden = false;
+    }
+  }
+  const filas = new Map();
+  function gravar(linha) {
+    const corpo = { id: linha.id }; CAMPOS.forEach((k) => { corpo[k] = linha[k] == null ? '' : String(linha[k]); });
+    const ant = filas.get(linha.id) || Promise.resolve();
+    const prox = ant.catch(() => {}).then(async () => {
+      const res = await fetch(API, { method: 'POST', headers: { ...HDR, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(corpo) });
+      if (!res.ok) throw new Error(String(res.status));
+    });
+    filas.set(linha.id, prox);
+    return prox;
+  }
+  async function excluir(id) {
+    const res = await fetch(`${API}?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE', headers: HDR });
+    if (!res.ok) throw new Error(String(res.status));
+  }
+  function aplicarLocal(linha) {
+    const i = ROWS.findIndex((p) => p.id === linha.id);
+    if (i >= 0) ROWS[i] = linha; else ROWS.push(linha);
+    ROWS.sort((a, b) => a.id.localeCompare(b.id));
+    assinatura = JSON.stringify(ROWS);
+    renderTudo();
+  }
+  const hora = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const nomeCanon = (campo, v) => { const k = String(v || '').trim().replace(/\s+/g, ' '); if (!k) return ''; const ex = ROWS.map((r) => r[campo]).find((n) => n && n.trim().toLowerCase() === k.toLowerCase()); return ex ? ex.trim() : k; };
+  async function salvarCampos(id, patch) {
+    const p = ROWS.find((x) => x.id === id); if (!p) return;
+    ['po', 'dev'].forEach((c) => { if (c in patch) patch[c] = nomeCanon(c, patch[c]); });
+    const gAntigo = grupo(p); const trocouPO = 'po' in patch && grupo({ po: patch.po }) !== gAntigo;
+    if (trocouPO) patch.ordem = '';
+    const linha = { ...p, ...patch, ultima_atualizacao: hojeISO() };
+    aplicarLocal(linha);
+    saved.textContent = 'Salvando…'; saved.classList.remove('bad');
+    try { await gravar(linha); saved.textContent = `Salvo às ${hora()}`; if (trocouPO && p.ordem) await compactar(gAntigo); }
+    catch (e) { saved.textContent = 'Não foi possível salvar. Verifique a internet e tente de novo.'; saved.classList.add('bad'); carregar(); }
+  }
+
+  /* ================= abas ================= */
+  const tabs = [...document.querySelectorAll('.pj-tab')];
+  const PAGES = ['visao', 'prioridades', 'po', 'dev', 'equipe', 'esteira', 'projetos'];
+  function mostrar(id) {
+    aba = id;
+    tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === id)));
+    const sec = id === 'rapido' ? 'projetos' : id;
+    PAGES.forEach((p) => { document.getElementById(p).hidden = p !== sec; });
+    renderAba();
+  }
+  tabs.forEach((t) => t.addEventListener('click', () => mostrar(t.dataset.tab)));
+
+  /* ================= topo ================= */
+  function renderTopo() {
+    const h = hojeISO(); const at = ativos();
+    const conta = (s) => at.filter((p) => A.get(p.id).status === s).length;
+    const set = (id, v) => { document.getElementById(id).textContent = v; };
+    set('k-completos', at.length ? pf.format(at.filter((p) => p.po && p.dev && p.producao_prev).length / at.length) : '—');
+    set('k-completos-sub', at.length ? `faltam: P.O. ${at.filter((p) => !p.po.trim()).length} · dev ${at.filter((p) => !p.dev.trim()).length} · data ${at.filter((p) => !p.producao_prev).length}` : 'dos projetos ativos');
+    const atr = at.filter((p) => A.get(p.id).atraso > 0);
+    set('k-atrasados', String(atr.length));
+    const respAtr = { 'P.O.': 0, Dev: 0, Cliente: 0 }; atr.forEach((p) => { respAtr[A.get(p.id).resp] += 1; });
+    set('k-atrasados-sub', `P.O. ${respAtr['P.O.']} · Dev ${respAtr.Dev} · Cliente ${respAtr.Cliente}`);
+    const geral = desempenho(ROWS, FASES.map((f) => f.k));
+    set('k-aderencia', geral.entregues ? pf.format(geral.noPrazo / geral.entregues) : '—');
+    set('k-aderencia-sub', geral.entregues ? `${geral.noPrazo} de ${geral.entregues} fases concluídas` : 'nenhuma fase concluída ainda');
+    set('k-proximos', String(at.filter((p) => { const a = A.get(p.id); return a.prazo && a.prazo >= h && diff(a.prazo, h) <= 14; }).length));
+    set('k-parados', String(at.filter((p) => A.get(p.id).parado).length));
+    const mes = ROWS.filter((p) => (p.producao_real || '').slice(0, 7) === h.slice(0, 7)).length;
+    set('k-mes', String(mes));
+    set('k-mes-sub', `${ROWS.length - at.length} concluídos no total`);
+    const strip = document.getElementById('status-carteira');
+    const itens = [el('span', '', '')];
+    itens[0].append('Ativos ', el('b', '', String(at.length)));
+    [['No prazo', 'ok'], ['Em risco', 'warn'], ['Parado', 'par'], ['Atrasado', 'bad']].forEach(([n, c]) => {
+      const s = el('span', `pj-pill ${c}`, `${n} `); s.append(el('b', '', String(conta(n)))); itens.push(s);
+    });
+    const inc = at.filter((p) => A.get(p.id).status === 'Incompleto');
+    if (inc.length) {
+      itens.push(el('span', 'pj-sep-txt', `Cadastro incompleto (${inc.length}):`));
+      [['po', 'Sem P.O.', (p) => !p.po.trim()], ['dev', 'Sem dev', (p) => !p.dev.trim()], ['data', 'Sem data de produção', (p) => !p.producao_prev]].forEach(([k, n, fn]) => {
+        const q2 = at.filter(fn).length; if (!q2) return;
+        const b = el('button', 'pj-pill sem', `${n} `); b.type = 'button'; b.title = 'Ver na aba Projetos'; b.append(el('b', '', String(q2)));
+        b.addEventListener('click', () => { tbFalta.value = k; mostrar('projetos'); }); itens.push(b);
+      });
+    }
+    strip.replaceChildren(...itens);
+    const take = document.getElementById('take'); take.replaceChildren();
+    const prox = at.filter((p) => A.get(p.id).prazo && A.get(p.id).prazo >= h).sort((a, b) => A.get(a.id).prazo.localeCompare(A.get(b.id).prazo))[0];
+    take.append('Fases atrasadas: ', el('b', '', String(atr.length)), ' · parados: ', el('b', '', String(at.filter((p) => A.get(p.id).parado).length)), ' · cadastro incompleto: ', el('b', '', String(conta('Incompleto'))), ` (sem P.O. ${at.filter((p) => !p.po.trim()).length} · sem dev ${at.filter((p) => !p.dev.trim()).length} · sem data de produção ${at.filter((p) => !p.producao_prev).length}).`);
+    if (prox) { const a = A.get(prox.id); take.append(' Próximo prazo: ', el('b', '', `${a.fase} de ${prox.projeto}`), ` (${a.resp}${a.respNome ? ` · ${a.respNome}` : ''}) em `, el('b', '', fd(a.prazo)), '.'); }
+  }
+
+  /* ================= visão geral ================= */
+  function renderVisao() {
+    const h = hojeISO();
+    /* prazos */
+    const tb = document.querySelector('#t-prazos tbody');
+    const lista = ativos().filter((p) => A.get(p.id).prazo).sort((a, b) => A.get(a.id).prazo.localeCompare(A.get(b.id).prazo)).slice(0, 15);
+    if (!lista.length) vazioRow(tb, 6, 'Nenhuma fase com data prevista ainda. Preencha os fins previstos na aba Projetos.');
+    else tb.replaceChildren(...lista.map((p) => {
+      const a = A.get(p.id); const tr = document.createElement('tr'); tr.className = 'pj-click'; tr.addEventListener('click', () => abrir(p.id));
+      const d = diff(a.prazo, h);
+      const dias = el('td', 'num', d < 0 ? `${-d} atrasado` : d === 0 ? 'hoje' : `em ${d}`); if (d < 0) dias.style.color = COR.bad; else if (d <= 3) dias.style.color = COR.warn;
+      const nome = el('td', 'pj-nome'); nome.append(el('div', '', `${p.id} · ${p.projeto}`));
+      const st = el('td'); st.append(pillA(a));
+      tr.append(nome, el('td', '', a.fase), el('td', '', `${a.resp}${a.respNome ? ` · ${a.respNome}` : ''}`), el('td', '', fd(a.prazo)), dias, st);
+      return tr;
+    }));
+    /* fases */
+    const box = document.getElementById('fases');
+    const cont = NOMES_FASE.map((n, i) => ({ n, v: ROWS.filter((p) => A.get(p.id).fi === i).length }));
+    const max = Math.max(1, ...cont.map((c) => c.v));
+    box.replaceChildren(...cont.map((c, i) => {
+      const row = el('div', 'pj-bar'); row.append(el('span', '', c.n));
+      const tr = el('div', 'pj-track'); const f = el('div', 'pj-fill'); f.style.width = `${(c.v / max) * 100}%`; f.style.background = i < 5 ? COR_FASE[i] : 'var(--cds-chart-muted)';
+      tr.append(f); row.append(tr, el('span', 'pj-n', String(c.v))); return row;
+    }));
+    /* prioridade */
+    const tp = document.querySelector('#t-prio tbody');
+    tp.replaceChildren(...[...PRIOS, ''].map((pr) => {
+      const ps = ativos().filter((p) => (p.prioridade || '') === pr);
+      const tr = document.createElement('tr'); const c0 = el('td'); c0.append(el('span', `pj-prio ${prioCls[pr] || 'p4'}`, pr || 'A definir')); tr.append(c0);
+      [['No prazo', COR.ok], ['Em risco', COR.warn], ['Parado', COR.par], ['Atrasado', COR.bad], ['Incompleto', COR.sem]].forEach(([s, c]) => {
+        const n = ps.filter((p) => A.get(p.id).status === s).length; const td = el('td', 'num', String(n)); if (n) { td.style.color = c; td.style.fontWeight = '600'; } tr.append(td);
+      });
+      const tot = el('td', 'num', String(ps.length)); tot.style.fontWeight = '600'; tr.append(tot); return tr;
+    }));
+    /* pendências */
+    const tpe = document.querySelector('#t-pend tbody');
+    const pend = ativos().filter((p) => p.pendencia_cliente_desde).sort((a, b) => A.get(b.id).pend - A.get(a.id).pend);
+    if (!pend.length) vazioRow(tpe, 6, 'Nenhuma pendência do cliente aberta.');
+    else tpe.replaceChildren(...pend.map((p) => {
+      const d = A.get(p.id).pend; const tr = document.createElement('tr'); tr.className = 'pj-click'; tr.addEventListener('click', () => abrir(p.id));
+      const rg = el('td'); const b = el('span', 'pj-regua', d >= 10 ? 'D+10 sócio decide' : d >= 5 ? 'D+5 sponsor' : d >= 3 ? 'D+3 lembrete' : 'D+0 registro');
+      b.style.color = d >= 10 ? COR.bad : d >= 5 ? COR.warn : 'var(--lo-ink)'; rg.append(b);
+      tr.append(el('td', '', `${p.id} · ${p.projeto}`), el('td', '', p.pendencia_descricao || '—'), el('td', '', p.po || '—'), el('td', '', fd(p.pendencia_cliente_desde)), el('td', 'num', String(d)), rg);
+      return tr;
+    }));
+    /* horas */
+    const hb = document.getElementById('horas');
+    const hs = ativos().filter((p) => num(p.horas_vendidas) > 0).map((p) => ({ p, v: num(p.horas_vendidas), a: num(p.horas_apontadas) })).sort((x, y) => y.a / y.v - x.a / x.v);
+    if (!hs.length) { hb.replaceChildren(el('div', 'pj-empty', 'Nenhum projeto com horas vendidas preenchidas. Informe em Gerenciar.')); }
+    else {
+      const mx = Math.max(1, ...hs.map((x) => Math.max(x.v, x.a)));
+      hb.replaceChildren(...hs.map(({ p, v, a }) => {
+        const r = el('div', 'pj-hr'); const t = el('div', 'pj-hrt');
+        t.append(el('span', '', `${p.id} · ${p.projeto}`), el('span', '', `${nf.format(a)} / ${nf.format(v)} h · ${pf.format(a / v)}`));
+        const trk = el('div', 'pj-trk'); const e = el('div', 'pj-est'); const f = el('div', 'pj-real');
+        e.style.width = `${(v / mx) * 100}%`; f.style.width = `calc(${(a / mx) * 100}% - 4px)`; f.style.background = a > v ? 'var(--cds-chart-status-critical)' : 'var(--pj-hl)';
+        trk.append(e, f); r.append(t, trk); return r;
+      }));
+    }
+  }
+
+  /* ================= pessoas ================= */
+  function saudeTd(v) {
+    const td = el('td');
+    if (v == null) { td.append(el('span', 'pj-muted', 'sem entregas')); return td; }
+    const w = el('div', 'pj-health'); const t = el('div', 'pj-track'); const f = el('div', 'pj-fill');
+    f.style.width = `${v * 100}%`; f.style.background = v >= 0.8 ? 'var(--color-ok)' : v >= 0.5 ? 'var(--color-warn)' : 'var(--color-bad)';
+    t.append(f); w.append(t, el('span', '', pf.format(v))); td.append(w); return td;
+  }
+  const fracao = (d, k) => (d.porFase[k].e ? `${d.porFase[k].ok}/${d.porFase[k].e}` : '—');
+  function ranking(campo, chaves) {
+    const nomes = [...new Set(ROWS.map((p) => p[campo]).filter(Boolean))];
+    return nomes.map((nome) => {
+      const ps = ROWS.filter((p) => p[campo] === nome);
+      return { nome, ps, d: desempenho(ps, chaves), ativos: ps.filter((p) => !A.get(p.id).concl).length, emDev: ps.filter((p) => A.get(p.id).fi === 1).length, retornos: ps.reduce((t, p) => t + parseRt(p).length, 0), rtTeste: ps.reduce((t, p) => t + parseRt(p).filter((x) => x.origem === 'teste').length, 0), horas: ps.reduce((t, p) => t + num(p.horas_apontadas), 0) };
+    }).sort((a, b) => (b.d.indice ?? -1) - (a.d.indice ?? -1) || a.d.vencidos - b.d.vencidos || b.ativos - a.ativos || a.nome.localeCompare(b.nome));
+  }
+  function fillSel(sel, valores, todos) {
+    const atual = sel.value;
+    sel.replaceChildren(...(todos ? [new Option(todos, '')] : []), ...valores.map((v) => new Option(v, v)));
+    sel.value = valores.includes(atual) ? atual : (todos ? '' : (valores[0] || ''));
+  }
+  const dataTd = (prev, real, ehAtual) => {
+    const td = el('td', 'pj-nowrap', real ? fd(real) : '—');
+    if (real && prev) { const d = diff(real, prev); if (d > 0) { td.style.color = COR.bad; td.textContent += ` (+${d})`; } else td.style.color = COR.ok; }
+    else if (!real && prev && ehAtual && prev < hojeISO()) { td.style.color = COR.bad; td.style.fontWeight = '600'; td.textContent = `vencido há ${diff(hojeISO(), prev)} d`; }
+    else if (!real) td.classList.add('pj-muted');
+    return td;
+  };
+  /* tempo de projeto: fim real da funcional -> fim real da produção */
+  function tempoProj(p) {
+    if (!p.funcional_real) return null;
+    if (p.producao_real) return { dias: Math.max(0, diff(p.producao_real, p.funcional_real)), aberto: false };
+    return { dias: Math.max(0, diff(hojeISO(), p.funcional_real)), aberto: true };
+  }
+  const dTxt = (n) => `${nf.format(Math.round(n))} d`;
+  function tempoTd(p) {
+    const t = tempoProj(p);
+    if (!t) return el('td', 'pj-muted pj-nowrap', 'sem funcional real');
+    const td = el('td', 'pj-nowrap', t.aberto ? `há ${dTxt(t.dias)}` : dTxt(t.dias));
+    if (t.aberto) td.style.color = 'var(--lo-ink)'; else td.style.fontWeight = '600';
+    td.title = t.aberto ? `Em andamento desde ${fd(p.funcional_real)}` : `${fd(p.funcional_real)} → ${fd(p.producao_real)}`;
+    return td;
+  }
+  function renderTempoPO() {
+    const tb = document.querySelector('#t-tempo-po tbody');
+    const nomes = [...new Set(ROWS.map((p) => p.po).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const dados = nomes.map((nome) => {
+      const ts = ROWS.filter((p) => p.po === nome).map((p) => ({ p, t: tempoProj(p) })).filter((x) => x.t);
+      const fe = ts.filter((x) => !x.t.aberto).map((x) => x.t.dias);
+      const ab = ts.filter((x) => x.t.aberto);
+      const media = (a) => (a.length ? a.reduce((s2, v) => s2 + v, 0) / a.length : null);
+      const antigo = ab.slice().sort((a, b) => b.t.dias - a.t.dias)[0];
+      return { nome, n: fe.length, media: media(fe), min: fe.length ? Math.min(...fe) : null, max: fe.length ? Math.max(...fe) : null, nAb: ab.length, mediaAb: media(ab.map((x) => x.t.dias)), antigo };
+    }).filter((d) => d.n || d.nAb);
+    if (!dados.length) { vazioRow(tb, 8, 'Ainda não há funcional com data real. O tempo começa a contar quando o fim real da funcional é preenchido.'); return; }
+    dados.sort((a, b) => (a.media ?? 1e9) - (b.media ?? 1e9) || a.nome.localeCompare(b.nome));
+    const mx = Math.max(1, ...dados.map((d) => Math.max(d.media || 0, d.mediaAb || 0)));
+    tb.replaceChildren(...dados.map((d) => {
+      const tr = document.createElement('tr'); tr.className = 'pj-click'; tr.addEventListener('click', () => { poSel.value = d.nome; renderPO(); });
+      const md = el('td');
+      if (d.media != null) { const w = el('div', 'pj-health'); const t = el('div', 'pj-track'); const f = el('div', 'pj-fill'); f.style.width = `${(d.media / mx) * 100}%`; f.style.background = 'var(--lo-blue)'; t.append(f); w.append(t, el('b', 'pj-tnum', dTxt(d.media))); md.append(w); }
+      else md.append(el('span', 'pj-muted', 'nenhum concluído'));
+      const ant = el('td', 'num pj-nowrap', d.antigo ? `${dTxt(d.antigo.t.dias)} · ${d.antigo.p.id}` : '—'); if (d.antigo) ant.title = d.antigo.p.projeto;
+      tr.append(el('td', '', d.nome), el('td', 'num', String(d.n)), md, el('td', 'num', d.min != null ? dTxt(d.min) : '—'), el('td', 'num', d.max != null ? dTxt(d.max) : '—'),
+        el('td', 'num', String(d.nAb)), el('td', 'num', d.mediaAb != null ? dTxt(d.mediaAb) : '—'), ant);
+      return tr;
+    }));
+  }
+  function renderPO() {
+    renderTempoPO();
+    const rk = ranking('po', ['funcional', 'teste']);
+    const tb = document.querySelector('#t-rank-po tbody');
+    if (!rk.length) vazioRow(tb, 9, 'Nenhum P.O. nomeado ainda. Preencha a coluna P.O. na aba Projetos.');
+    else tb.replaceChildren(...rk.map((r, i) => {
+      const tr = document.createElement('tr'); tr.className = 'pj-click'; tr.addEventListener('click', () => { poSel.value = r.nome; renderPO(); });
+      const v = el('td', 'num', String(r.d.vencidos)); if (r.d.vencidos) { v.style.color = COR.bad; v.style.fontWeight = '600'; }
+      tr.append(el('td', 'pj-rank', `${i + 1}º`), el('td', '', r.nome), el('td', 'num', String(r.ativos)), el('td', 'num', fracao(r.d, 'funcional')), el('td', 'num', fracao(r.d, 'teste')), v,
+        el('td', 'num', r.d.atrasoMedio ? `${r.d.atrasoMedio.toFixed(1).replace('.', ',')} d` : '—'), saudeTd(r.d.indice), el('td', 'num', String(r.d.proximos)));
+      return tr;
+    }));
+    fillSel(poSel, rk.map((r) => r.nome).sort((a, b) => a.localeCompare(b)));
+    const nome = poSel.value;
+    document.getElementById('po-titulo').textContent = nome ? `Projetos de ${nome}` : 'Projetos do P.O.';
+    const tp = document.querySelector('#t-po tbody');
+    const ps = ROWS.filter((p) => p.po === nome).sort((a, b) => (num(a.ordem) || 9999) - (num(b.ordem) || 9999) || A.get(a.id).fi - A.get(b.id).fi || (A.get(a.id).prazo || '9').localeCompare(A.get(b.id).prazo || '9'));
+    if (!ps.length) { vazioRow(tp, 10, 'Selecione um P.O.'); return; }
+    tp.replaceChildren(...ps.map((p) => {
+      const a = A.get(p.id); const tr = document.createElement('tr'); tr.className = 'pj-click'; tr.addEventListener('click', () => abrir(p.id));
+      const st = el('td'); st.append(pillA(a));
+      tr.append(el('td', 'pj-nome', `${num(p.ordem) ? `#${p.ordem} · ` : ''}${p.id} · ${p.projeto}${p.tipo === 'rapido' ? ' (caixa rápido)' : ''}`), el('td', '', a.fase),
+        el('td', 'pj-nowrap', fd(p.funcional_prev)), dataTd(p.funcional_prev, p.funcional_real, a.fi === 0),
+        el('td', 'pj-nowrap', fd(p.teste_prev)), dataTd(p.teste_prev, p.teste_real, a.fi === 2),
+        el('td', 'pj-nowrap', fd(p.producao_prev)), tempoTd(p), el('td', 'pj-passo', p.proximo_passo || '—'), st);
+      return tr;
+    }));
+  }
+  function renderDev() {
+    const rk = ranking('dev', ['dev', 'producao']);
+    const tb = document.querySelector('#t-rank-dev tbody');
+    if (!rk.length) vazioRow(tb, 10, 'Nenhum desenvolvedor nomeado ainda. Preencha a coluna Dev na aba Projetos.');
+    else tb.replaceChildren(...rk.map((r, i) => {
+      const tr = document.createElement('tr'); tr.className = 'pj-click'; tr.addEventListener('click', () => { devSel.value = r.nome; renderDev(); });
+      const ed = el('td', `num${r.emDev > 2 ? ' pj-over' : ''}`, String(r.emDev));
+      const v = el('td', 'num', String(r.d.vencidos)); if (r.d.vencidos) { v.style.color = COR.bad; v.style.fontWeight = '600'; }
+      tr.append(el('td', 'pj-rank', `${i + 1}º`), el('td', '', r.nome), ed, el('td', 'num', String(r.ativos)), el('td', 'num', fracao(r.d, 'dev')), (() => { const td = el('td', 'num', r.retornos ? String(r.retornos) : '0'); if (r.retornos) { td.style.color = COR.par; td.style.fontWeight = '600'; td.title = `${r.rtTeste} do teste · ${r.retornos - r.rtTeste} da homologação`; } return td; })(), v,
+        el('td', 'num', r.d.atrasoMedio ? `${r.d.atrasoMedio.toFixed(1).replace('.', ',')} d` : '—'), saudeTd(r.d.indice), el('td', 'num', nf.format(r.horas)));
+      return tr;
+    }));
+    fillSel(devSel, rk.map((r) => r.nome).sort((a, b) => a.localeCompare(b)));
+    const nome = devSel.value;
+    document.getElementById('dev-titulo').textContent = nome ? `Projetos de ${nome}` : 'Projetos do desenvolvedor';
+    const tp = document.querySelector('#t-dev tbody');
+    const ps = ROWS.filter((p) => p.dev === nome).sort((a, b) => A.get(a.id).fi - A.get(b.id).fi);
+    if (!ps.length) { vazioRow(tp, 8, 'Selecione um desenvolvedor.'); return; }
+    tp.replaceChildren(...ps.map((p) => {
+      const a = A.get(p.id); const tr = document.createElement('tr'); tr.className = 'pj-click'; tr.addEventListener('click', () => abrir(p.id));
+      const st = el('td'); st.append(pillA(a));
+      tr.append(el('td', 'pj-nome', `${p.id} · ${p.projeto}`), el('td', '', p.po || '—'), el('td', '', a.fase),
+        el('td', 'pj-nowrap', fd(p.dev_prev)), dataTd(p.dev_prev, p.dev_real, a.fi === 1), el('td', 'pj-nowrap', fd(p.producao_prev)), dataTd(p.producao_prev, p.producao_real, a.fi === 4), st);
+      return tr;
+    }));
+  }
+  const poSel = document.getElementById('po-sel'); poSel.addEventListener('change', () => renderPO());
+  const devSel = document.getElementById('dev-sel'); devSel.addEventListener('change', () => renderDev());
+
+  /* ================= esteira ================= */
+  const estPO = document.getElementById('est-po'); const estConcl = document.getElementById('est-concl');
+  estPO.addEventListener('change', () => renderEsteira()); estConcl.addEventListener('change', () => renderEsteira());
+  function renderEsteira() {
+    const leg = document.getElementById('est-legend');
+    const itens = FASES.map((f, i) => { const s = el('span'); const sw = el('i'); sw.style.background = COR_FASE[i]; s.append(sw, f.n); return s; });
+    [['No prazo', 'ok'], ['Em risco', 'warn'], ['Parado', 'par'], ['Atrasado', 'bad']].forEach(([n, c]) => { const s = el('span'); const sw = el('i', 'dot'); sw.style.background = COR[c]; s.append(sw, n); itens.push(s); });
+    leg.replaceChildren(...itens);
+    fillSel(estPO, [...new Set(ROWS.map((p) => p.po).filter(Boolean))].sort((a, b) => a.localeCompare(b)), 'Todos');
+    const box = document.getElementById('esteira-chart');
+    let ps = ROWS.slice();
+    if (!estConcl.checked) ps = ps.filter((p) => !A.get(p.id).concl);
+    if (estPO.value) ps = ps.filter((p) => p.po === estPO.value);
+    const temData = (p) => p.inicio || FASES.some((f) => p[`${f.k}_prev`]);
+    const semData = ps.filter((p) => !temData(p)); ps = ps.filter(temData);
+    document.getElementById('est-semdata').textContent = semData.length ? `${semData.length} ${semData.length === 1 ? 'projeto ainda sem datas não aparece' : 'projetos ainda sem datas não aparecem'} na esteira.` : '';
+    const W = box.clientWidth; if (!W) return;
+    if (!ps.length || typeof d3 === 'undefined') { box.replaceChildren(el('div', 'pj-empty', typeof d3 === 'undefined' ? 'Gráfico indisponível sem internet.' : 'Nenhum projeto com datas ainda. Preencha os fins previstos na aba Projetos.')); return; }
+    const SEM = '(sem P.O.)';
+    const pos = [...new Set(ps.map((p) => p.po || SEM))].sort((a, b) => (a === SEM) - (b === SEM) || a.localeCompare(b));
+    const hoje = new Date(`${hojeISO()}T00:00:00Z`);
+    const datas = ps.flatMap((p) => [p.inicio, ...FASES.flatMap((f) => [p[`${f.k}_prev`], p[`${f.k}_real`]])]).filter(Boolean).map((v) => new Date(`${v}T00:00:00Z`)).concat([hoje]);
+    const x0 = d3.utcMonth.floor(d3.min(datas)); const x1 = d3.utcMonth.ceil(d3.utcDay.offset(d3.max(datas), 1));
+    const M = { l: 8, r: 12, t: 28 }; const x = d3.scaleUtc([x0, x1], [M.l, W - M.r]);
+    const LANE = 30, ROW = 36; let y = M.t; const lay = [];
+    pos.forEach((po) => {
+      const lp = ps.filter((p) => (p.po || SEM) === po).sort((a, b) => (num(a.ordem) || 9999) - (num(b.ordem) || 9999) || (a.producao_prev || '9').localeCompare(b.producao_prev || '9') || a.id.localeCompare(b.id));
+      lay.push({ t: 'po', po, y, n: lp.length }); y += LANE; lp.forEach((p) => { lay.push({ t: 'p', p, y }); y += ROW; }); y += 6;
+    });
+    const H = y + 4;
+    const svg = d3.create('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Esteira de entregas por P.O.');
+    const meses = x.ticks(d3.utcMonth.every(1)); const passo = Math.max(1, Math.ceil(meses.length / Math.max(1, Math.floor(W / 56))));
+    meses.forEach((m, i) => {
+      svg.append('line').attr('x1', x(m)).attr('x2', x(m)).attr('y1', M.t - 6).attr('y2', H).attr('stroke', 'var(--cds-chart-grid)');
+      if (i % passo === 0) svg.append('text').attr('x', x(m) + 3).attr('y', 14).attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text(MESES[m.getUTCMonth()] + (m.getUTCMonth() === 0 || i === 0 ? `/${String(m.getUTCFullYear()).slice(2)}` : ''));
+    });
+    const tip = el('div', 'pj-tip'); tip.hidden = true;
+    lay.forEach((it) => {
+      if (it.t === 'po') {
+        svg.append('rect').attr('x', 0).attr('y', it.y + 4).attr('width', W).attr('height', LANE - 8).attr('rx', 4).attr('fill', 'var(--lo-tint)');
+        svg.append('text').attr('x', M.l + 4).attr('y', it.y + 19).attr('font-size', 12).attr('font-weight', 600).attr('fill', 'var(--lo-navy)').text(`${it.po} · ${it.n} ${it.n === 1 ? 'projeto' : 'projetos'}`);
+        return;
+      }
+      const p = it.p; const a = A.get(p.id);
+      const g = svg.append('g').attr('opacity', a.concl ? 0.55 : 1);
+      g.append('text').attr('x', M.l).attr('y', it.y + 12).attr('font-size', 11).attr('fill', 'var(--color-fg)').text(`${num(p.ordem) ? `#${p.ordem}  ` : ''}${p.id} · ${p.projeto}${p.tipo === 'rapido' ? ' [caixa rápido]' : ''} — ${a.fase.toLowerCase()} · entrega ${fdc(p.producao_prev)}`);
+      let ini = p.inicio;
+      FASES.forEach((f, i) => {
+        const fim = p[`${f.k}_prev`];
+        if (ini && fim && fim >= ini) {
+          const xa = x(new Date(`${ini}T00:00:00Z`)), xb = x(new Date(`${fim}T00:00:00Z`));
+          const r = g.append('rect').attr('x', xa).attr('y', it.y + 19).attr('width', Math.max(2, xb - xa - 1)).attr('height', 10).attr('rx', 2).attr('fill', COR_FASE[i]).attr('fill-opacity', i < a.fi ? 1 : i === a.fi ? 0.85 : 0.28);
+          if (i === a.fi && !a.concl) r.attr('stroke', a.atraso > 0 ? 'var(--color-bad)' : 'var(--lo-navy)').attr('stroke-width', 1.5);
+        }
+        const real = p[`${f.k}_real`];
+        if (real) { const xr = x(new Date(`${real}T00:00:00Z`)); g.append('line').attr('x1', xr).attr('x2', xr).attr('y1', it.y + 16).attr('y2', it.y + 32).attr('stroke', 'var(--color-fg)').attr('stroke-width', 2); }
+        if (fim) ini = fim;
+      });
+      parseRt(p).forEach((rt) => { if (!rt.data) return; const xa = x(new Date(`${rt.data}T00:00:00Z`)); const xb = x(new Date(`${rt.fim || hojeISO()}T00:00:00Z`)); g.append('rect').attr('x', xa).attr('y', it.y + 30).attr('width', Math.max(3, xb - xa)).attr('height', 4).attr('rx', 2).attr('fill', 'var(--pj-parado)'); });
+      if (p.producao_prev) g.append('circle').attr('cx', x(new Date(`${p.producao_prev}T00:00:00Z`))).attr('cy', it.y + 24).attr('r', 5.5).attr('fill', COR[cls(a.status)]).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+      svg.append('rect').attr('x', 0).attr('y', it.y).attr('width', W).attr('height', ROW).attr('fill', 'transparent').style('cursor', 'pointer')
+        .on('click', () => abrir(p.id))
+        .on('mousemove', (ev) => {
+          tip.replaceChildren(el('div', 'pj-tip-t', `${p.id} · ${p.projeto}`));
+          [['P.O.', p.po || '—'], ['Dev', p.dev || '—'], ['Fase atual', a.fase], ...FASES.map((f) => [f.n, `${fd(p[`${f.k}_prev`])}${p[`${f.k}_real`] ? ` → real ${fd(p[`${f.k}_real`])}` : ''}`]), ['Status', a.status]]
+            .forEach(([k, v]) => { const l = el('div'); l.append(el('span', 'k', `${k}: `), v); tip.append(l); });
+          tip.hidden = false; const [mx, my] = d3.pointer(ev, box);
+          tip.style.left = `${Math.min(Math.max(0, mx + 12), box.clientWidth - tip.offsetWidth)}px`; tip.style.top = `${my + 14}px`;
+        })
+        .on('mouseleave', () => { tip.hidden = true; });
+    });
+    if (hoje >= x0 && hoje <= x1) {
+      svg.append('line').attr('x1', x(hoje)).attr('x2', x(hoje)).attr('y1', M.t - 8).attr('y2', H).attr('stroke', 'var(--lo-blue)').attr('stroke-dasharray', '4 3').attr('stroke-width', 1.5);
+      svg.append('text').attr('x', x(hoje) + 4).attr('y', M.t - 2).attr('font-size', 10).attr('font-weight', 600).attr('fill', 'var(--lo-blue)').text('hoje');
+    }
+    box.replaceChildren(svg.node(), tip);
+  }
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (aba === 'esteira') renderEsteira(); }, 150); });
+
+  /* ================= projetos (edição) ================= */
+  const tbPO = document.getElementById('tb-po'); const tbQ = document.getElementById('tb-q');
+  const tbBody = document.querySelector('#tb-projetos tbody');
+  let ord = { k: 'ordem', dir: 1 }; let pendente = false;
+  const tbFalta = document.getElementById('tb-falta'); tbFalta.addEventListener('change', () => renderProjetos(true));
+  tbPO.addEventListener('change', () => renderProjetos(true)); tbQ.addEventListener('input', () => renderProjetos(true));
+  document.querySelectorAll('#tb-projetos th button').forEach((b) => b.addEventListener('click', () => { ord = { k: b.dataset.k, dir: ord.k === b.dataset.k ? -ord.dir : 1 }; renderProjetos(true); }));
+  tbBody.addEventListener('focusout', () => setTimeout(() => { if (pendente && !tbBody.contains(document.activeElement)) renderProjetos(); }, 0));
+  function inp(p, campo, tipo, lista, ph) {
+    const i = document.createElement('input'); i.type = tipo; i.value = p[campo] || ''; i.className = `pj-in${p[campo] ? '' : ' falta'}`;
+    i.setAttribute('aria-label', `${campo} de ${p.id}`); if (lista) i.setAttribute('list', lista); if (ph) i.placeholder = ph;
+    i.addEventListener('change', () => { const v = i.value.trim(); if (v !== (p[campo] || '')) salvarCampos(p.id, { [campo]: v }); });
+    const td = el('td'); td.append(i); return td;
+  }
+  function dataInp(p, k) {
+    const td = inp(p, `${k}_prev`, 'date'); const real = p[`${k}_real`];
+    if (real) { const d = diff(real, p[`${k}_prev`] || real); td.append(el('div', `pj-real-tag${d > 0 ? ' bad' : ''}`, `real ${fdc(real)}${d > 0 ? ` (+${d})` : ''}`)); td.firstChild.classList.remove('falta'); }
+    return td;
+  }
+  function listas() {
+    const enche = (id, k) => document.getElementById(id).replaceChildren(...[...new Set(ROWS.map((p) => p[k]).filter(Boolean))].sort((a, b) => a.localeCompare(b)).map((v) => new Option(v, v)));
+    enche('dl-po', 'po'); enche('dl-dev', 'dev'); enche('dl-cliente', 'cliente');
+  }
+  function renderFinalizados(fin, rapido, total) {
+    document.getElementById('fin-titulo').textContent = rapido ? 'Caixa rápido finalizados' : 'Projetos finalizados';
+    document.getElementById('fin-contagem').textContent = `${total} ${total === 1 ? 'finalizado' : 'finalizados'}`;
+    const tb = document.querySelector('#tb-fin tbody');
+    if (!fin.length) { vazioRow(tb, 11, total ? 'Nenhum finalizado neste filtro.' : 'Nenhum finalizado ainda. Quando a produção real for preenchida, o projeto vem para cá.'); return; }
+    tb.replaceChildren(...fin.map((p) => {
+      const a = A.get(p.id); const tr = document.createElement('tr');
+      const d = p.producao_prev ? diff(p.producao_real, p.producao_prev) : null;
+      const dv = el('td', 'num pj-nowrap', d == null ? '—' : d === 0 ? 'no dia' : `${sinal(d)} d`); if (d != null) dv.style.color = d > 0 ? COR.bad : COR.ok;
+      const nome = el('td', 'pj-nome'); nome.append(el('div', '', `${p.id} · ${p.projeto}`)); if (p.cliente) nome.append(el('div', 'pj-cli', p.cliente));
+      const st = el('td'); st.append(pillA(a));
+      const ac = el('td'); const bg = el('button', 'pj-btn pj-sm pj-primary-soft', 'Gerenciar'); bg.type = 'button'; bg.addEventListener('click', () => abrir(p.id)); ac.append(bg);
+      tr.append(el('td', 'pj-nowrap', p.ordem ? `#${p.ordem}` : '—'), nome, el('td', '', p.po || '—'), el('td', '', p.dev || '—'), el('td', 'pj-nowrap', fd(p.funcional_real)),
+        el('td', 'pj-nowrap', fd(p.producao_prev)), el('td', 'pj-nowrap', fd(p.producao_real)), dv, tempoTd(p), st, ac);
+      return tr;
+    }));
+  }
+  function renderProjetos(forcar) {
+    if (!forcar && tbBody.contains(document.activeElement) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) { pendente = true; return; }
+    pendente = false; listas();
+    const rapido = aba === 'rapido';
+    document.getElementById('tb-titulo').textContent = rapido ? 'Caixa rápido · projetos curtos' : 'Carteira de projetos';
+    document.getElementById('btn-novo').textContent = rapido ? '+ Novo caixa rápido' : '+ Novo projeto';
+    const BASE = ROWS.filter((p) => (rapido ? p.tipo === 'rapido' : p.tipo !== 'rapido'));
+    fillSel(tbPO, [...new Set(BASE.map((p) => p.po).filter(Boolean))].sort((a, b) => a.localeCompare(b)), 'Todos');
+    if (!BASE.length) { vazioRow(tbBody, 15, !carregado ? 'Carregando…' : rapido ? 'Nenhum caixa rápido ainda. Use “+ Novo caixa rápido” para adicionar projetos curtos.' : 'Nenhum projeto cadastrado. Use “+ Novo projeto”.'); return; }
+    const q = tbQ.value.trim().toLowerCase();
+    const faltaOk = (p) => { const v = tbFalta.value; if (!v) return true; if (A.get(p.id).concl) return false; if (v === 'po') return !p.po.trim(); if (v === 'dev') return !p.dev.trim(); if (v === 'data') return !p.producao_prev; return A.get(p.id).status === 'Incompleto'; };
+    const ps = BASE.filter((p) => faltaOk(p) && (!tbPO.value || p.po === tbPO.value) && (!q || [p.id, p.projeto, p.cliente, p.po, p.dev].join(' ').toLowerCase().includes(q)));
+    const val = (p) => { const k = ord.k; const a = A.get(p.id);
+      if (k === 'status') return a.status; if (k === 'fase') return a.fi; if (k === 'prioridade') return prioOrd[p.prioridade] ?? 9; if (k === 'ordem') return `${grupo(p)}\u0000${String(num(p.ordem) || 9999).padStart(4, '0')}`; return p[k] || '￿'; };
+    ps.sort((a, b) => { const va = val(a), vb = val(b); return (typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb))) * ord.dir; });
+    document.querySelectorAll('#tb-projetos th').forEach((th) => { const b = th.querySelector('button'); if (!b) return; if (b.dataset.k === ord.k) th.setAttribute('aria-sort', ord.dir === 1 ? 'ascending' : 'descending'); else th.removeAttribute('aria-sort'); });
+    const fin = ps.filter((p) => A.get(p.id).concl).sort((a, b) => (b.producao_real || '').localeCompare(a.producao_real || ''));
+    renderFinalizados(fin, rapido, BASE.filter((p) => A.get(p.id).concl).length);
+    const ativosT = ps.filter((p) => !A.get(p.id).concl);
+    if (!ativosT.length) { vazioRow(tbBody, 15, fin.length ? 'Nenhum ativo neste filtro. Os finalizados estão na tabela abaixo.' : 'Nenhum projeto neste filtro.'); return; }
+    tbBody.replaceChildren(...ativosT.map((p) => {
+      const a = A.get(p.id); const tr = document.createElement('tr');
+      const nome = el('td', 'pj-nome'); nome.append(el('div', '', p.projeto || 'Sem título')); if (p.cliente) nome.append(el('div', 'pj-cli', p.cliente));
+      const s = document.createElement('select'); s.className = `pj-in${p.prioridade ? '' : ' falta'}`; s.setAttribute('aria-label', `prioridade de ${p.id}`);
+      s.append(new Option('a definir', ''), ...PRIOS.map((o) => new Option(o, o))); s.value = p.prioridade || ''; s.addEventListener('change', () => salvarCampos(p.id, { prioridade: s.value }));
+      const pr = el('td'); pr.append(s);
+      const fase = el('td', 'pj-nowrap'); const fb = el('span', `pj-fase${a.retAberto ? ' pj-fase-rt' : ''}`, a.fase); fb.style.setProperty('--fc', a.retAberto ? 'var(--pj-parado)' : a.fi < 5 ? COR_FASE[a.fi] : 'var(--cds-chart-muted)'); fase.append(fb);
+      const st = el('td'); st.append(pillA(a)); if (a.atraso > 0 && !a.concl) st.append(el('div', 'pj-cli', `${a.atraso} d · ${a.resp}`));
+      const ac = el('td', 'pj-acoes');
+      if (!a.concl && a.retAberto) { const bc = el('button', 'pj-btn pj-sm pj-rt-fechar', 'Fechar retorno'); bc.type = 'button'; bc.title = 'Grava hoje como fim da correção do retorno em aberto'; bc.addEventListener('click', () => salvarCampos(p.id, { retornos: JSON.stringify(parseRt(p).map((x) => (x.id === a.retAberto.id ? { ...x, fim: hojeISO() } : x))) })); ac.append(bc); }
+      else if (!a.concl) { const bc = el('button', 'pj-btn pj-sm', 'Concluir fase'); bc.type = 'button'; bc.title = `Grava hoje como fim real de ${a.fase}`; bc.addEventListener('click', () => salvarCampos(p.id, { [`${FASES[a.fi].k}_real`]: hojeISO() })); ac.append(bc); }
+      const bg = el('button', 'pj-btn pj-sm pj-primary-soft', 'Gerenciar'); bg.type = 'button'; bg.addEventListener('click', () => abrir(p.id)); ac.append(bg);
+      const idc = el('td', 'pj-nowrap pj-idcell'); const oi = document.createElement('input'); oi.type = 'number'; oi.min = '1'; oi.value = p.ordem || ''; oi.placeholder = 'nº'; oi.className = `pj-ordmini${p.ordem ? '' : ' vazio'}`; oi.setAttribute('aria-label', `Prioridade de ${p.id}`);
+      oi.addEventListener('change', () => { const v = oi.value.trim() === '' ? 0 : Number(oi.value); if (v !== (num(p.ordem) || 0) && v >= 0) mover(p.id, v); });
+      oi.addEventListener('keydown', (e) => { if (e.key === 'Enter') oi.blur(); });
+      idc.append(oi, el('span', 'pj-idtxt', p.id));
+      tr.append(idc, nome, inp(p, 'po', 'text', 'dl-po', 'nomear'), inp(p, 'dev', 'text', 'dl-dev', 'nomear'), pr, fase,
+        dataInp(p, 'funcional'), dataInp(p, 'dev'), retCell(p, 'teste'), dataInp(p, 'teste'), dataInp(p, 'homolog'), retCell(p, 'homolog'), dataInp(p, 'producao'), st, ac);
+      return tr;
+    }));
+  }
+
+
+  /* barra de rolagem horizontal também no topo */
+  (() => {
+    const top = document.getElementById('tb-top'); const wrap = document.getElementById('tb-wrap'); const inner = top.firstElementChild;
+    let sync = false;
+    const ajusta = () => { inner.style.width = `${wrap.scrollWidth}px`; top.style.visibility = wrap.scrollWidth > wrap.clientWidth + 1 ? 'visible' : 'hidden'; };
+    top.addEventListener('scroll', () => { if (sync) { sync = false; return; } sync = true; wrap.scrollLeft = top.scrollLeft; });
+    wrap.addEventListener('scroll', () => { if (sync) { sync = false; return; } sync = true; top.scrollLeft = wrap.scrollLeft; });
+    window.addEventListener('resize', ajusta);
+    if (typeof ResizeObserver === 'function') { const ro = new ResizeObserver(ajusta); ro.observe(wrap); ro.observe(document.getElementById('tb-projetos')); }
+    new MutationObserver(ajusta).observe(document.querySelector('#tb-projetos tbody'), { childList: true });
+    ajusta();
+  })();
+
+  /* ================= prioridades por P.O. ================= */
+  const ordSaved = document.getElementById('ord-saved');
+  const ordConcl = document.getElementById('ord-concl'); ordConcl.addEventListener('change', () => renderPrioridades());
+  const ordPO = document.getElementById('ord-po'); ordPO.addEventListener('change', () => renderPrioridades());
+  const SEMPO = '(sem P.O.)';
+  const grupo = (p) => String(p.po || '').trim().replace(/\s+/g, ' ').toLowerCase() || '~';
+  const nomeGrupo = (g) => (g === '~' ? SEMPO : ((ROWS.find((p) => grupo(p) === g) || {}).po || '').trim());
+  const posOrd = (p) => num(p.ordem) || 1e9;
+  const numeradosG = (g) => ROWS.filter((p) => grupo(p) === g && num(p.ordem) > 0).sort((a, b) => num(a.ordem) - num(b.ordem) || a.id.localeCompare(b.id));
+  const maxOrdem = () => 0;
+  const tagCR = (p) => (p.tipo === 'rapido' ? el('span', 'pj-cr', 'caixa rápido') : null);
+  async function gravarLote(linhas) {
+    if (!linhas.length) return;
+    const corpo = linhas.map((l) => { const c = { id: l.id }; CAMPOS.forEach((k) => { c[k] = l[k] == null ? '' : String(l[k]); }); return c; });
+    const res = await fetch(API, { method: 'POST', headers: { ...HDR, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(corpo) });
+    if (!res.ok) throw new Error(String(res.status));
+  }
+  function avisoOrdem(txt, ruim) { [ordSaved, saved].forEach((e) => { e.textContent = txt; e.classList.toggle('bad', !!ruim); }); }
+  async function aplicarMudancas(mud) {
+    if (!mud.length) { renderAba(); return; }
+    mud.forEach((l) => { const j = ROWS.findIndex((x) => x.id === l.id); if (j >= 0) ROWS[j] = l; });
+    assinatura = JSON.stringify(ROWS); renderTudo();
+    avisoOrdem('Salvando…');
+    try { await gravarLote(mud); avisoOrdem(`Prioridade salva às ${hora()}`); }
+    catch (e) { avisoOrdem('Não foi possível salvar a prioridade. Verifique a internet.', true); carregar(); }
+  }
+  async function mover(id, pos) {
+    const alvo = ROWS.find((p) => p.id === id); if (!alvo) return;
+    const lista = numeradosG(grupo(alvo)).filter((p) => p.id !== id);
+    const mud = [];
+    if (pos) { pos = Math.max(1, Math.min(lista.length + 1, Math.round(pos))); lista.splice(pos - 1, 0, alvo); }
+    else if (alvo.ordem) mud.push({ ...alvo, ordem: '' });
+    lista.forEach((p, k) => { const n = String(k + 1); if (p.ordem !== n) mud.push({ ...p, ordem: n }); });
+    await aplicarMudancas(mud);
+  }
+  async function compactar(g) {
+    const mud = []; numeradosG(g).forEach((p, k) => { const n = String(k + 1); if (p.ordem !== n) mud.push({ ...p, ordem: n }); });
+    if (mud.length) await aplicarMudancas(mud);
+  }
+  const FAIXAS = [[1, 1, 'Prioridade 1'], [2, 3, '2 e 3'], [4, 5, '4 e 5'], [6, 1e9, '6 ou mais']];
+  const ST_ORD = [['Atrasado', 'bad'], ['Parado', 'par'], ['Em risco', 'warn'], ['Incompleto', 'sem'], ['No prazo', 'ok']];
+  function inputOrdem(p, total, cls2) {
+    const n = num(p.ordem) || 0;
+    const i = document.createElement('input'); i.type = 'number'; i.min = '1'; i.value = n ? String(n) : ''; i.placeholder = 'nº';
+    i.className = `${cls2}${n ? '' : ' vazio'}`; i.setAttribute('aria-label', `Prioridade de ${p.projeto} na fila de ${nomeGrupo(grupo(p))}`);
+    i.title = `Prioridade na fila de ${nomeGrupo(grupo(p))}`;
+    i.addEventListener('change', () => { const v = i.value.trim() === '' ? 0 : Number(i.value); if (v !== n && v >= 0) mover(p.id, v); });
+    i.addEventListener('keydown', (e) => { if (e.key === 'Enter') i.blur(); });
+    return i;
+  }
+  function renderPrioridades() {
+    const h = hojeISO();
+    const grupos = [...new Set(ROWS.map(grupo))].sort((a, b) => (a === '~') - (b === '~') || nomeGrupo(a).localeCompare(nomeGrupo(b)));
+    fillSel(ordPO, grupos.map(nomeGrupo), 'Todos');
+    const set = (id, v) => { document.getElementById(id).textContent = v; };
+    const filaAtiva = (g) => numeradosG(g).filter((p) => !A.get(p.id).concl);
+    const gNomeados = grupos.filter((g) => g !== '~');
+    const p1 = gNomeados.map((g) => filaAtiva(g)[0]).filter(Boolean);
+    const ok1 = p1.filter((p) => A.get(p.id).status === 'No prazo').length;
+    set('o-top5', p1.length ? `${ok1} de ${p1.length}` : '—');
+    set('o-top5-sub', p1.length ? (p1.filter((p) => A.get(p.id).status !== 'No prazo').map((p) => `${nomeGrupo(grupo(p))}: ${A.get(p.id).status.toLowerCase()}`).slice(0, 3).join(' · ') || 'todas no prazo') : 'nenhum P.O. com fila ainda');
+    const top3 = gNomeados.flatMap((g) => filaAtiva(g).slice(0, 3));
+    set('o-top10', top3.length ? pf.format(top3.filter((p) => p.po && p.dev && p.producao_prev).length / top3.length) : '—');
+    const r3 = top3.filter((p) => ['Atrasado', 'Parado'].includes(A.get(p.id).status));
+    set('o-risco10', String(r3.length)); set('o-risco10-sub', r3.length ? r3.map((p) => `${nomeGrupo(grupo(p))} #${p.ordem}`).slice(0, 4).join(' · ') : 'nenhum');
+    const semNumAll = ativos().filter((p) => !num(p.ordem));
+    set('o-sem', String(semNumAll.length));
+    const porPO = {}; semNumAll.forEach((p) => { const n = nomeGrupo(grupo(p)); porPO[n] = (porPO[n] || 0) + 1; });
+    set('o-sem-sub', semNumAll.length ? Object.entries(porPO).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([n, q]) => `${n} ${q}`).join(' · ') : 'todos numerados');
+    const atr = ativos().filter((p) => num(p.ordem) && A.get(p.id).status === 'Atrasado');
+    set('o-media', atr.length ? `#${Math.round(atr.reduce((t, p) => t + num(p.ordem), 0) / atr.length)}` : '—');
+    /* faixas */
+    document.getElementById('faixas-leg').replaceChildren(...ST_ORD.map(([n, c]) => { const s = el('span'); const sw = el('i', 'dot'); sw.style.background = COR[c]; s.append(sw, n); return s; }));
+    const atNum = ativos().filter((p) => num(p.ordem));
+    const linhasF = FAIXAS.map(([a, b, rot]) => ({ rot, ps: atNum.filter((p) => num(p.ordem) >= a && num(p.ordem) <= b) })).filter((x) => x.ps.length);
+    const maxF = Math.max(1, ...linhasF.map((x) => x.ps.length));
+    const fx = document.getElementById('faixas');
+    if (!linhasF.length) fx.replaceChildren(el('div', 'pj-empty', 'Nenhum projeto com número de prioridade ainda. Defina os números nas filas abaixo.'));
+    else fx.replaceChildren(...linhasF.map((x) => {
+      const row = el('div', 'pj-faixa'); row.append(el('span', 'pj-faixa-rot', x.rot));
+      const trk = el('div', 'pj-faixa-trk'); const bar = el('div', 'pj-faixa-bar'); bar.style.width = `${(x.ps.length / maxF) * 100}%`;
+      ST_ORD.forEach(([n, c]) => { const k = x.ps.filter((p) => A.get(p.id).status === n).length; if (!k) return; const seg = el('div', 'pj-seg', String(k)); seg.style.flex = String(k); seg.style.background = COR[c]; seg.title = `${n}: ${k}`; bar.append(seg); });
+      trk.append(bar); row.append(trk, el('span', 'pj-n', String(x.ps.length))); return row;
+    }));
+    /* filas */
+    const tb = document.querySelector('#t-ord tbody');
+    if (tb.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') return;
+    const linhas = [];
+    const linha = (p, total) => {
+      const a = A.get(p.id); const n = num(p.ordem) || 0; const tr = document.createElement('tr');
+      if (n === 1 && !a.concl) tr.className = 'pj-top';
+      const c0 = el('td', 'pj-ordcell'); c0.append(inputOrdem(p, total, 'pj-ordin'));
+      if (n) {
+        const up = el('button', 'pj-arrow', '▲'); up.type = 'button'; up.setAttribute('aria-label', 'Subir'); up.disabled = n === 1; up.addEventListener('click', () => mover(p.id, n - 1));
+        const dn = el('button', 'pj-arrow', '▼'); dn.type = 'button'; dn.setAttribute('aria-label', 'Descer'); dn.disabled = n === total; dn.addEventListener('click', () => mover(p.id, n + 1));
+        c0.append(up, dn);
+      }
+      const nome = el('td', 'pj-nome'); nome.append(el('div', '', `${p.id} · ${p.projeto}`)); const cr = tagCR(p); if (cr) nome.firstChild.append(' ', cr); if (p.cliente) nome.append(el('div', 'pj-cli', p.cliente));
+      const fase = el('td', 'pj-nowrap'); const fb = el('span', 'pj-fase', a.fase); fb.style.setProperty('--fc', a.fi < 5 ? COR_FASE[a.fi] : 'var(--cds-chart-muted)'); fase.append(fb);
+      const pz = el('td', 'pj-nowrap', a.prazo ? fd(a.prazo) : '—'); if (a.prazo && a.prazo < h && !a.concl) pz.style.color = COR.bad;
+      const st = el('td'); st.append(pillA(a));
+      const ac = el('td'); const bg = el('button', 'pj-btn pj-sm pj-primary-soft', 'Gerenciar'); bg.type = 'button'; bg.addEventListener('click', () => abrir(p.id)); ac.append(bg);
+      const dv = el('td', p.dev ? '' : 'pj-falta-txt', p.dev || 'sem dev');
+      tr.append(c0, nome, dv, fase, pz, el('td', 'pj-nowrap', fd(p.producao_prev)), st, ac);
+      return tr;
+    };
+    grupos.filter((g) => !ordPO.value || nomeGrupo(g) === ordPO.value).forEach((g) => {
+      const todos = ROWS.filter((p) => grupo(p) === g);
+      const num1 = numeradosG(g); const comNum = ordConcl.checked ? num1 : num1.filter((p) => !A.get(p.id).concl);
+      const sem = todos.filter((p) => !num(p.ordem) && (ordConcl.checked || !A.get(p.id).concl)).sort((a, b) => a.id.localeCompare(b.id));
+      if (!comNum.length && !sem.length) return;
+      const tr = document.createElement('tr'); const td = el('td', 'pj-sep pj-sep-po'); td.colSpan = 8;
+      td.append(el('b', '', nomeGrupo(g)), el('span', 'pj-muted', ` · ${num1.length} na fila${sem.length ? ` · ${sem.length} sem número` : ''}`));
+      tr.append(td); linhas.push(tr);
+      comNum.forEach((p) => linhas.push(linha(p, num1.length)));
+      sem.forEach((p) => { const r = linha(p, num1.length); r.classList.add('pj-semnum'); linhas.push(r); });
+    });
+    if (!linhas.length) vazioRow(tb, 8, 'Nenhum projeto.'); else tb.replaceChildren(...linhas);
+  }
+  document.querySelector('#t-ord tbody').addEventListener('focusout', () => setTimeout(() => { if (aba === 'prioridades' && !document.querySelector('#t-ord tbody').contains(document.activeElement)) renderPrioridades(); }, 0));
+
+
+  /* ================= equipe ================= */
+  const eqPapel = document.getElementById('eq-papel'); const eqQ = document.getElementById('eq-q');
+  eqPapel.addEventListener('change', () => renderEquipe()); eqQ.addEventListener('input', () => renderEquipe());
+  const abertos = new Set();
+  const chave = (n) => String(n || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  function pessoas() {
+    const m = new Map();
+    const add = (nome, papel, p) => {
+      const k = chave(nome); if (!k) return;
+      if (!m.has(k)) m.set(k, { nome: String(nome).trim().replace(/\s+/g, ' '), po: [], dev: [] });
+      m.get(k)[papel].push(p);
+    };
+    ROWS.forEach((p) => { add(p.po, 'po', p); add(p.dev, 'dev', p); });
+    return [...m.values()].map((x) => {
+      const todos = [...new Map([...x.po, ...x.dev].map((p) => [p.id, p])).values()];
+      const ativosP = todos.filter((p) => !A.get(p.id).concl);
+      return { ...x, todos, ativos: ativosP.length, emDev: x.dev.filter((p) => A.get(p.id).fi === 1).length,
+        atrasados: ativosP.filter((p) => A.get(p.id).status === 'Atrasado').length, concl: todos.length - ativosP.length,
+        horas: ROWS.reduce((t, p) => t + parseAp(p).filter((a) => chave(a.pessoa) === chave(x.nome)).reduce((u, a) => u + (Number(a.horas) || 0), 0), 0) };
+    });
+  }
+  function renderEquipe() {
+    const lista = pessoas(); const at = ativos();
+    const set = (id, v) => { document.getElementById(id).textContent = v; };
+    const nPO = lista.filter((x) => x.po.length).length, nDev = lista.filter((x) => x.dev.length).length;
+    set('e-pessoas', String(lista.length)); set('e-pessoas-sub', `${nPO} como P.O. · ${nDev} como dev`);
+    set('e-media', lista.length ? (lista.reduce((t, x) => t + x.ativos, 0) / lista.length).toFixed(1).replace('.', ',') : '—');
+    const top = lista.slice().sort((a, b) => b.ativos - a.ativos || a.nome.localeCompare(b.nome))[0];
+    set('e-top', top ? top.nome : '—'); set('e-top-sub', top ? `${top.ativos} ativos · ${top.po.length} como P.O. · ${top.dev.length} como dev` : 'ninguém nomeado ainda');
+    const semPO = at.filter((p) => !p.po.trim()).length, semDev = at.filter((p) => !p.dev.trim()).length;
+    set('e-sem', String(at.filter((p) => !p.po.trim() || !p.dev.trim()).length)); set('e-sem-sub', `sem P.O. ${semPO} · sem dev ${semDev}`);
+    const q = chave(eqQ.value);
+    let vis = lista.filter((x) => (!eqPapel.value || x[eqPapel.value].length) && (!q || chave(x.nome).includes(q)));
+    vis.sort((a, b) => b.todos.length - a.todos.length || b.ativos - a.ativos || a.nome.localeCompare(b.nome));
+    const tb = document.querySelector('#t-equipe tbody');
+    const mx = Math.max(1, ...lista.map((x) => x.todos.length));
+    const linhas = [];
+    if (!vis.length) { vazioRow(tb, 9, lista.length ? 'Nenhum nome encontrado.' : 'Ninguém nomeado ainda. Preencha P.O. e Dev na aba Projetos.'); }
+    else {
+      vis.forEach((x) => {
+        const k = chave(x.nome); const tr = document.createElement('tr'); tr.className = 'pj-click';
+        const aberto = abertos.has(k);
+        const nm = el('td', 'pj-eq-nome'); nm.append(el('span', 'pj-eq-seta', aberto ? '▾' : '▸'), x.nome);
+        const papel = x.po.length && x.dev.length ? 'P.O. e Dev' : x.po.length ? 'P.O.' : 'Dev';
+        const tot = el('td'); const w = el('div', 'pj-health'); const t = el('div', 'pj-track pj-eq-track');
+        const fpo = el('div', 'pj-eq-seg'); fpo.style.width = `${(x.po.length / mx) * 100}%`; fpo.style.background = 'var(--lo-blue)';
+        const fdv = el('div', 'pj-eq-seg'); fdv.style.width = `${(x.dev.length / mx) * 100}%`; fdv.style.background = 'var(--pj-f5)';
+        t.append(fpo, fdv); w.append(t, el('b', 'pj-tnum', String(x.todos.length))); tot.append(w);
+        const atr = el('td', 'num', String(x.atrasados)); if (x.atrasados) { atr.style.color = COR.bad; atr.style.fontWeight = '600'; }
+        const ed = el('td', `num${x.emDev > 2 ? ' pj-over' : ''}`, String(x.emDev));
+        tr.append(nm, el('td', 'pj-muted', papel), el('td', 'num', String(x.po.length)), el('td', 'num', String(x.dev.length)), tot, el('td', 'num', String(x.ativos)), ed, atr, el('td', 'num', String(x.concl)));
+        tr.addEventListener('click', () => { if (abertos.has(k)) abertos.delete(k); else abertos.add(k); renderEquipe(); });
+        linhas.push(tr);
+        if (aberto) {
+          const det = document.createElement('tr'); det.className = 'pj-eq-det'; const td = el('td'); td.colSpan = 9;
+          const ul = el('ul', 'pj-eq-lista');
+          x.todos.slice().sort((a, b) => A.get(a.id).fi - A.get(b.id).fi || a.id.localeCompare(b.id)).forEach((p) => {
+            const a = A.get(p.id); const li = el('li');
+            const papeis = [chave(p.po) === k ? 'P.O.' : '', chave(p.dev) === k ? 'Dev' : ''].filter(Boolean).join(' e ');
+            const b = el('button', 'pj-eq-proj', `${p.id} · ${p.projeto}`); b.type = 'button'; b.addEventListener('click', (e) => { e.stopPropagation(); abrir(p.id); });
+            li.append(b, el('span', 'pj-eq-papel', papeis), el('span', 'pj-muted', a.fase), pillA(a));
+            ul.append(li);
+          });
+          td.append(ul); det.append(td); linhas.push(det);
+        }
+      });
+      tb.replaceChildren(...linhas);
+    }
+  }
+
+  /* ================= gestão do projeto (modal) ================= */
+  const modal = document.getElementById('modal');
+  const mMsg = document.getElementById('m-msg'); const mWarn = document.getElementById('m-warn');
+  const conf = document.getElementById('m-confirm'); const bDel = document.getElementById('m-del');
+  const SIMPLES = ['tipo', 'projeto', 'cliente', 'po', 'dev', 'prioridade', 'inicio', 'horas_vendidas', 'horas_apontadas', 'pendencia_cliente_desde', 'pendencia_descricao', 'proximo_passo'];
+  const f = (k) => document.getElementById(`f-${k}`);
+  let editId = null; let novo = false;
+  const crono = document.getElementById('m-crono');
+  FASES.forEach((fa, i) => {
+    const tr = document.createElement('tr');
+    const n = el('td'); const b = el('span', 'pj-fase', fa.n); b.style.setProperty('--fc', COR_FASE[i]); n.append(b);
+    const mk = (suf) => { const td = el('td'); const i2 = document.createElement('input'); i2.type = 'date'; i2.id = `f-${fa.k}_${suf}`; i2.className = 'pj-cin'; i2.setAttribute('aria-label', `${fa.n} ${suf === 'prev' ? 'fim previsto' : 'fim real'}`); i2.addEventListener('input', desvios); td.append(i2); return td; };
+    tr.append(n, el('td', 'pj-muted', fa.r), mk('prev'), mk('real'), el('td', 'num pj-desvio'));
+    tr.lastChild.id = `d-${fa.k}`; crono.append(tr);
+  });
+  function desvios() {
+    const h = hojeISO();
+    FASES.forEach((fa) => {
+      const pv = f(`${fa.k}_prev`).value, rl = f(`${fa.k}_real`).value, td = document.getElementById(`d-${fa.k}`);
+      td.style.color = ''; td.textContent = '—';
+      if (pv && rl) { const d = diff(rl, pv); td.textContent = d === 0 ? 'no dia' : `${sinal(d)} d`; td.style.color = d > 0 ? COR.bad : COR.ok; }
+      else if (pv && !rl && pv < h) { td.textContent = `vencido ${diff(h, pv)} d`; td.style.color = COR.bad; }
+      else if (pv && !rl) { td.textContent = `faltam ${diff(pv, h)} d`; }
+    });
+  }
+  /* ================= retornos ao desenvolvimento ================= */
+  const ORIGEM = { teste: 'Teste unitário', homolog: 'Homologação' };
+  const DA = { teste: 'do teste unitário', homolog: 'da homologação' };
+  const parseRt = (p) => { try { const v = JSON.parse((p && p.retornos) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const rtModal = document.getElementById('rt-modal'); const rtMsg = document.getElementById('rt-msg');
+  const rtOrigem = document.getElementById('rt-origem'), rtData = document.getElementById('rt-data'), rtFim = document.getElementById('rt-fim'), rtJust = document.getElementById('rt-just');
+  let rtId = null;
+  function retCell(p, origem) {
+    const lista = parseRt(p).filter((r) => r.origem === origem);
+    const abertos = lista.filter((r) => !r.fim).length;
+    const td = el('td', 'pj-rtcell');
+    const b = el('button', `pj-rtbtn${abertos ? ' aberto' : lista.length ? ' tem' : ''}`, lista.length ? `+ ${lista.length}` : '+');
+    b.type = 'button'; b.title = lista.length ? `${lista.length} retorno(s) ${DA[origem]} ao dev${abertos ? ` · ${abertos} em correção` : ''} · clique para ver ou adicionar` : `Registrar retorno ${DA[origem]} para o desenvolvimento`;
+    b.setAttribute('aria-label', b.title);
+    b.addEventListener('click', () => abrirRt(p.id, origem));
+    td.append(b); return td;
+  }
+  function abrirRt(id, origem) {
+    rtId = id; const p = ROWS.find((x) => x.id === id); if (!p) return;
+    document.getElementById('rt-title').textContent = `${p.id} · ${p.projeto}`;
+    rtOrigem.value = origem || 'teste'; rtData.value = hojeISO(); rtFim.value = ''; rtJust.value = ''; rtMsg.textContent = '';
+    renderRt(); rtModal.hidden = false; rtJust.focus();
+  }
+  const fecharRt = () => { rtModal.hidden = true; rtId = null; };
+  document.getElementById('rt-close').addEventListener('click', fecharRt);
+  rtModal.addEventListener('click', (e) => { if (e.target === rtModal) fecharRt(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !rtModal.hidden) { e.stopImmediatePropagation(); fecharRt(); } }, true);
+  function renderRt() {
+    const p = ROWS.find((x) => x.id === rtId); const tb = document.querySelector('#rt-tabela tbody');
+    const lista = parseRt(p).slice().sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+    if (!lista.length) { vazioRow(tb, 7, 'Nenhum retorno registrado.'); return; }
+    tb.replaceChildren(...lista.map((r, i) => {
+      const tr = document.createElement('tr'); if (!r.fim) tr.className = 'pj-rt-aberto';
+      const fimTd = el('td', 'pj-nowrap'); const fi = document.createElement('input'); fi.type = 'date'; fi.value = r.fim || ''; fi.className = 'pj-cin'; fi.setAttribute('aria-label', 'Fim da correção');
+      fi.addEventListener('change', () => gravarRt(parseRt(ROWS.find((x) => x.id === rtId)).map((x) => (x.id === r.id ? { ...x, fim: fi.value } : x)), fi.value ? 'Fim da correção registrado' : 'Retorno reaberto'));
+      fimTd.append(fi); if (!r.fim) fimTd.append(el('div', 'pj-cli', 'em correção'));
+      const dias = r.data ? diff(r.fim || hojeISO(), r.data) : null;
+      const ac = el('td', 'pj-nowrap'); const del = el('button', 'pj-log-del', 'Excluir'); del.type = 'button';
+      const cf = el('span', 'pj-log-conf'); cf.hidden = true; const sim = el('button', 'pj-log-del pj-danger', 'Sim'); sim.type = 'button'; const nao = el('button', 'pj-log-del', 'Não'); nao.type = 'button'; cf.append('Excluir? ', sim, nao);
+      del.addEventListener('click', () => { del.hidden = true; cf.hidden = false; }); nao.addEventListener('click', () => { del.hidden = false; cf.hidden = true; });
+      sim.addEventListener('click', () => gravarRt(parseRt(ROWS.find((x) => x.id === rtId)).filter((x) => x.id !== r.id), 'Retorno excluído'));
+      ac.append(del, cf);
+      const og = el('td'); og.append(el('span', `pj-rt-og ${r.origem}`, ORIGEM[r.origem] || r.origem));
+      tr.append(el('td', 'pj-muted', `${i + 1}º`), og, el('td', 'pj-nowrap', fd(r.data)), fimTd, el('td', 'num', dias == null ? '—' : `${dias} d`), el('td', 'pj-ap-com', r.justificativa), ac);
+      return tr;
+    }));
+  }
+  async function gravarRt(lista, ok) {
+    const row = ROWS.find((x) => x.id === rtId); if (!row) return false;
+    const linha = { ...row, retornos: JSON.stringify(lista), ultima_atualizacao: hojeISO() };
+    rtMsg.textContent = 'Salvando…';
+    try { await gravar(linha); aplicarLocal(linha); renderRt(); if (!modal.hidden && editId === rtId) renderRtGer(); rtMsg.textContent = ok; return true; }
+    catch (e) { rtMsg.textContent = 'Não foi possível salvar. Verifique a internet.'; return false; }
+  }
+  document.getElementById('rt-add').addEventListener('click', async () => {
+    const row = ROWS.find((x) => x.id === rtId); if (!row) return;
+    const erro = !rtData.value ? 'Informe a data do retorno.' : (rtFim.value && rtFim.value < rtData.value) ? 'O fim da correção não pode ser antes do retorno.' : !rtJust.value.trim() ? 'Escreva a justificativa do retorno.' : '';
+    if (erro) { rtMsg.textContent = erro; return; }
+    const ent = { id: `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, origem: rtOrigem.value, data: rtData.value, fim: rtFim.value, justificativa: rtJust.value.trim(), registrado: agoraTxt() };
+    if (await gravarRt([...parseRt(row), ent], `Retorno ${DA[ent.origem]} registrado`)) { rtFim.value = ''; rtJust.value = ''; }
+  });
+  /* resumo dentro de Gerenciar */
+  function renderRtGer() {
+    const box = document.getElementById('m-retornos'); if (!box) return;
+    const p = novo ? null : ROWS.find((x) => x.id === editId); box.replaceChildren();
+    if (!p) { box.append(el('span', 'pj-muted', 'Salve o projeto antes de registrar retornos.')); return; }
+    const l = parseRt(p); const t = l.filter((r) => r.origem === 'teste'), h = l.filter((r) => r.origem === 'homolog'); const ab = l.filter((r) => !r.fim).length;
+    const dias = l.reduce((s2, r) => s2 + (r.data ? diff(r.fim || hojeISO(), r.data) : 0), 0);
+    box.append(el('span', '', l.length ? `${l.length} retorno(s): ${t.length} do teste · ${h.length} da homologação · ${dias} dias de correção${ab ? ` · ${ab} em correção agora` : ''}` : 'Nenhum retorno ao desenvolvimento.'));
+    [['teste', '+ Retorno do teste'], ['homolog', '+ Retorno da homologação']].forEach(([o, rot]) => { const b = el('button', 'pj-btn pj-sm', rot); b.type = 'button'; b.addEventListener('click', () => abrirRt(p.id, o)); box.append(b); });
+  }
+
+  /* ---------- apontamento de horas (funcional e dev) ---------- */
+  const parseAp = (p) => { try { const v = JSON.parse((p && p.apontamentos) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const somaAp = (lista) => lista.reduce((t, a) => t + (Number(a.horas) || 0), 0);
+  const fh = (h) => { const m = Math.round((Number(h) || 0) * 60); return `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}`; };
+  /* ---------- meu status: observações datadas ---------- */
+  const parseHist = (p) => { try { const v = JSON.parse((p && p.historico) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const agoraTxt = () => { const d = new Date(); return `${hojeISO()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+  const fdh = (v) => (v ? `${fd(v.slice(0, 10))}${v.length > 10 ? ` às ${v.slice(11, 16)}` : ''}` : '');
+  const logTxt = document.getElementById('log-texto'); const logAutor = document.getElementById('log-autor');
+  const logMsg = document.getElementById('log-msg'); const logLista = document.getElementById('log-lista'); const logAdd = document.getElementById('log-add');
+  try { logAutor.value = localStorage.getItem('locusone-autor') || ''; } catch (e) { /* sem armazenamento */ }
+  logAutor.addEventListener('change', () => { try { localStorage.setItem('locusone-autor', logAutor.value.trim()); } catch (e) { /* ok */ } });
+  function renderLog() {
+    const p = novo ? null : ROWS.find((x) => x.id === editId);
+    logTxt.disabled = !p; logAdd.disabled = !p; logMsg.textContent = p ? '' : 'Salve o projeto antes de registrar status.';
+    const hist = parseHist(p);
+    if (!hist.length) { logLista.replaceChildren(el('li', 'pj-log-vazio', p ? 'Nenhum status registrado ainda.' : '')); return; }
+    logLista.replaceChildren(...hist.map((h, i) => {
+      const li = el('li', 'pj-log-item');
+      const cab = el('div', 'pj-log-cab'); cab.append(el('b', '', fdh(h.data)));
+      if (h.autor) cab.append(el('span', 'pj-muted', `· ${h.autor}`));
+      if (i === 0) cab.append(el('span', 'pj-log-ult', 'mais recente'));
+      const del = el('button', 'pj-log-del', 'Excluir'); del.type = 'button';
+      const conf2 = el('span', 'pj-log-conf'); conf2.hidden = true;
+      const sim = el('button', 'pj-log-del pj-danger', 'Sim, excluir'); sim.type = 'button'; const nao = el('button', 'pj-log-del', 'Não'); nao.type = 'button';
+      conf2.append('Excluir este registro? ', sim, ' ', nao);
+      del.addEventListener('click', () => { del.hidden = true; conf2.hidden = false; });
+      nao.addEventListener('click', () => { del.hidden = false; conf2.hidden = true; });
+      sim.addEventListener('click', () => gravarHist(parseHist(ROWS.find((x) => x.id === editId)).filter((x, k) => !(k === i && x.data === h.data && x.texto === h.texto)), 'Registro excluído'));
+      cab.append(el('span', 'pj-spacer'), del, conf2);
+      li.append(cab, el('div', 'pj-log-txt', h.texto));
+      return li;
+    }));
+  }
+  async function gravarHist(hist, ok) {
+    const row = ROWS.find((x) => x.id === editId); if (!row) return false;
+    const linha = { ...row, historico: JSON.stringify(hist), ultima_atualizacao: hojeISO() };
+    logMsg.textContent = 'Salvando…'; logAdd.disabled = true;
+    try { await gravar(linha); aplicarLocal(linha); renderLog(); logMsg.textContent = ok; return true; }
+    catch (e) { logMsg.textContent = 'Não foi possível salvar. Verifique a internet.'; logAdd.disabled = false; return false; }
+  }
+  logAdd.addEventListener('click', async () => {
+    const texto = logTxt.value.trim();
+    if (!texto) { logMsg.textContent = 'Escreva a observação antes de registrar.'; logTxt.focus(); return; }
+    const row = ROWS.find((x) => x.id === editId); if (!row) return;
+    const entrada = { data: agoraTxt(), autor: logAutor.value.trim(), texto };
+    if (await gravarHist([entrada, ...parseHist(row)], `Status registrado em ${fdh(entrada.data)}`)) logTxt.value = '';
+  });
+  logTxt.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) logAdd.click(); });
+
+  function proximoId() { const n = Math.max(0, ...ROWS.map((p) => Number(String(p.id).replace(/\D/g, '')) || 0)) + 1; return `P${String(n).padStart(2, '0')}`; }
+  function abrir(id) {
+    novo = !id; editId = id || proximoId();
+    const p = id ? ROWS.find((x) => x.id === id) || {} : {};
+    document.getElementById('m-eyebrow').textContent = novo ? (aba === 'rapido' ? 'Novo caixa rápido' : 'Novo projeto') : `${p.tipo === 'rapido' ? 'Caixa rápido' : 'Gestão do projeto'} · ${editId}`;
+    document.getElementById('m-title').textContent = novo ? editId : (p.projeto || editId);
+    SIMPLES.forEach((k) => { f(k).value = p[k] || ''; });
+    if (novo) f('tipo').value = aba === 'rapido' ? 'rapido' : '';
+    FASES.forEach((fa) => { f(`${fa.k}_prev`).value = p[`${fa.k}_prev`] || ''; f(`${fa.k}_real`).value = p[`${fa.k}_real`] || ''; });
+    const ms = document.getElementById('m-status'); ms.replaceChildren();
+    if (!novo) {
+      const a = A.get(id);
+      ms.append(pillA(a), el('span', '', `Fase atual: ${a.fase}`));
+      if (!a.concl) ms.append(el('span', '', `Responsável: ${a.resp}${a.respNome ? ` · ${a.respNome}` : ''}`), el('span', '', a.prazo ? `Fim previsto ${fd(a.prazo)}` : 'Sem data prevista'));
+      const ult = parseHist(p)[0]; if (ult) ms.append(el('span', '', `Último status ${fdh(ult.data)}`));
+      ms.append(el('span', 'pj-muted', `Atualizado ${fd(p.ultima_atualizacao)}`));
+    }
+    renderLog(); renderRtGer(); desvios(); mMsg.textContent = ''; mWarn.hidden = true; conf.hidden = true; bDel.hidden = novo;
+    modal.hidden = false; f('projeto').focus();
+  }
+  const fechar = () => { modal.hidden = true; editId = null; };
+  document.getElementById('btn-novo').addEventListener('click', () => abrir(null));
+  document.getElementById('m-close').addEventListener('click', fechar);
+  document.getElementById('m-cancel').addEventListener('click', fechar);
+  modal.addEventListener('click', (e) => { if (e.target === modal) fechar(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) fechar(); });
+  document.getElementById('m-dist').addEventListener('click', () => {
+    const a = f('inicio').value, b = f('producao_prev').value;
+    if (!a || !b || b <= a) { mWarn.textContent = 'Preencha o Início do projeto e o fim previsto de Produção, com a produção depois do início.'; mWarn.hidden = false; return; }
+    const t0 = T(a), span = T(b) - t0, pesos = [20, 40, 15, 15]; let acc = 0;
+    ['funcional', 'dev', 'teste', 'homolog'].forEach((k, i) => { acc += pesos[i]; if (!f(`${k}_prev`).value) f(`${k}_prev`).value = new Date(t0 + Math.round((span * acc) / 100 / DIA) * DIA).toISOString().slice(0, 10); });
+    desvios(); mWarn.hidden = true; mMsg.textContent = 'Previstos distribuídos. Ajuste se quiser e clique em Salvar.';
+  });
+  document.getElementById('m-save').addEventListener('click', async () => {
+    const base = novo ? {} : (ROWS.find((x) => x.id === editId) || {});
+    const linha = { ...base, id: editId };
+    SIMPLES.forEach((k) => { linha[k] = String(f(k).value || '').trim(); });
+    linha.po = nomeCanon('po', linha.po); linha.dev = nomeCanon('dev', linha.dev);
+    const gAntigoM = novo ? null : grupo(base); const trocouPOM = !novo && grupo(linha) !== gAntigoM;
+    if (novo || trocouPOM) linha.ordem = novo ? '' : '';
+    if (!novo && !trocouPOM) linha.ordem = base.ordem || '';
+    FASES.forEach((fa) => { linha[`${fa.k}_prev`] = f(`${fa.k}_prev`).value; linha[`${fa.k}_real`] = f(`${fa.k}_real`).value; });
+    if (!linha.projeto) { mWarn.textContent = 'Dê um título ao projeto.'; mWarn.hidden = false; f('projeto').focus(); return; }
+    const seq = [linha.inicio, ...FASES.map((fa) => linha[`${fa.k}_prev`])].filter(Boolean);
+    const fora = seq.some((v, i) => i > 0 && v < seq[i - 1]);
+    const pulou = FASES.some((fa, i) => linha[`${fa.k}_real`] && FASES.slice(0, i).some((ant) => !linha[`${ant.k}_real`]));
+    linha.ultima_atualizacao = hojeISO();
+    mMsg.textContent = 'Salvando…';
+    try {
+      await gravar(linha); aplicarLocal(linha); saved.textContent = `Salvo às ${hora()}`; saved.classList.remove('bad');
+      if (trocouPOM && base.ordem) await compactar(gAntigoM);
+      if (fora || pulou) { mWarn.textContent = `Salvo. Atenção: ${fora ? 'há fase prevista para terminar antes da anterior' : ''}${fora && pulou ? '; ' : ''}${pulou ? 'há fase com data real enquanto uma anterior está sem data real' : ''}.`; mWarn.hidden = false; mMsg.textContent = ''; novo = false; bDel.hidden = false; return; }
+      fechar();
+    } catch (e) { mMsg.textContent = 'Não foi possível salvar. Verifique a internet e tente de novo.'; }
+  });
+  bDel.addEventListener('click', () => { conf.hidden = false; bDel.hidden = true; });
+  document.getElementById('m-del-no').addEventListener('click', () => { conf.hidden = true; bDel.hidden = false; });
+  document.getElementById('m-del-yes').addEventListener('click', async () => {
+    try { await excluir(editId); ROWS = ROWS.filter((p) => p.id !== editId); assinatura = JSON.stringify(ROWS); fechar(); renderTudo(); saved.textContent = 'Projeto excluído'; }
+    catch (e) { mMsg.textContent = 'Não foi possível excluir. Tente de novo.'; }
+  });
+
+  /* ================= CSV ================= */
+  const COLS = ['id', ...CAMPOS];
+  const q = (v) => { const s = String(v ?? ''); return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  document.getElementById('btn-export').addEventListener('click', () => {
+    const csv = [COLS.join(','), ...ROWS.map((r) => COLS.map((c) => q(r[c])).join(','))].join('\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `carteira_projetos_${hojeISO()}.csv`; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+  function parseCSV(txt) {
+    txt = txt.replace(/^﻿/, ''); const l0 = txt.split('\n')[0];
+    const sep = (l0.match(/;/g) || []).length > (l0.match(/,/g) || []).length ? ';' : ',';
+    const out = []; let row = [], cell = '', aspas = false;
+    for (let i = 0; i < txt.length; i++) { const c = txt[i];
+      if (aspas) { if (c === '"' && txt[i + 1] === '"') { cell += '"'; i++; } else if (c === '"') aspas = false; else cell += c; }
+      else if (c === '"') aspas = true; else if (c === sep) { row.push(cell); cell = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && txt[i + 1] === '\n') i++; row.push(cell); out.push(row); row = []; cell = ''; } else cell += c; }
+    if (cell || row.length) { row.push(cell); out.push(row); }
+    return out.filter((r) => r.some((x) => x.trim()));
+  }
+  const fileIn = document.getElementById('in-import');
+  fileIn.addEventListener('change', async () => {
+    const fl = fileIn.files && fileIn.files[0]; if (!fl) return;
+    try {
+      const rows = parseCSV(await fl.text()); const head = rows.shift().map((h) => h.trim());
+      if (!head.includes('id') || !head.includes('projeto')) throw new Error('cab');
+      const lote = rows.map((r) => { const o = {}; head.forEach((h, i) => { o[h] = (r[i] || '').trim(); }); const b = { id: o.id }; CAMPOS.forEach((k) => { b[k] = o[k] || ''; }); return b; }).filter((b) => b.id);
+      saved.textContent = 'Importando…'; saved.classList.remove('bad');
+      const res = await fetch(API, { method: 'POST', headers: { ...HDR, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(lote) });
+      if (!res.ok) throw new Error(String(res.status));
+      saved.textContent = `${lote.length} projetos importados`; await carregar();
+    } catch (e) { saved.textContent = 'Não foi possível importar: use um CSV exportado deste painel.'; saved.classList.add('bad'); }
+    fileIn.value = '';
+  });
+
+  /* ================= orquestração ================= */
+  function renderAba() {
+    if (!carregado) return;
+    if (aba === 'visao') renderVisao();
+    if (aba === 'po') renderPO();
+    if (aba === 'dev') renderDev();
+    if (aba === 'esteira') renderEsteira();
+    if (aba === 'equipe') renderEquipe();
+    if (aba === 'projetos' || aba === 'rapido') renderProjetos();
+    if (aba === 'prioridades') renderPrioridades();
+  }
+  let primeira = true;
+  function renderTudo() {
+    recalcular(); renderTopo();
+    if (primeira) { primeira = false; const comp = ativos().filter((p) => p.po && p.dev && p.producao_prev).length; if (ROWS.length && comp / Math.max(1, ativos().length) < 0.5) { mostrar('projetos'); return; } }
+    renderAba();
+  }
+  renderProjetos();
+  carregar();
+  setInterval(() => { if (document.visibilityState === 'visible' && modal.hidden) carregar(); }, 20000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && modal.hidden) carregar(); });
+})();
+</script></body></html>
